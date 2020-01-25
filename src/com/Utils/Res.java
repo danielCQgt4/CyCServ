@@ -15,6 +15,10 @@ public class Res {
     private final String RESPONSE_MESSAGE;
     private String CONTENT_LENGHT;
     private String CONTENT_TYPE;
+    private String ACCESS_CONTROL_ALLOW_ORIGIN;
+    private String ACCESS_CONTROL_ALLOW_HEADERS;
+    private String ACCESS_CONTROL_ALLOW_CREDENTIALS;
+    private String ACCESS_CONTROL_ALLOW_METHODS;
     private final OutputStream outpuStream;
     // </editor-fold>
 
@@ -40,17 +44,15 @@ public class Res {
     }
 
     public String getCONTENT_LENGHT(String content) {
-        this.CONTENT_LENGHT = "Content-Length: " + content.length();
+        this.CONTENT_LENGHT = "content-length: " + content.length();
         return CONTENT_LENGHT;
     }
 
     public String getCONTENT_LENGHT() {
-        this.CONTENT_LENGHT = "Content-Length: 0";
         return CONTENT_LENGHT;
     }
 
     public String getCONTENT_TYPE() {
-        this.CONTENT_TYPE = "Content-type: text/html";
         return CONTENT_TYPE;
     }
 
@@ -58,31 +60,78 @@ public class Res {
         this.CONTENT_TYPE = contentType;
         return CONTENT_TYPE;
     }
-    // </editor-fold>
 
+    public String getACCESS_CONTROL_ALLOW_ORIGIN() {
+        return ACCESS_CONTROL_ALLOW_ORIGIN;
+    }
+
+    public void setACCESS_CONTROL_ALLOW_ORIGIN(String ACCESS_CONTROL_ALLOW) {
+        this.ACCESS_CONTROL_ALLOW_ORIGIN = ACCESS_CONTROL_ALLOW;
+    }
+
+    public String getACCESS_CONTROL_ALLOW_HEADERS() {
+        return ACCESS_CONTROL_ALLOW_HEADERS;
+    }
+
+    public void setACCESS_CONTROL_ALLOW_HEADERS(String ACCESS_CONTROL_ALLOW_HEADERS) {
+        this.ACCESS_CONTROL_ALLOW_HEADERS = ACCESS_CONTROL_ALLOW_HEADERS;
+    }
+
+    public String getACCESS_CONTROL_ALLOW_CREDENTIALS() {
+        return ACCESS_CONTROL_ALLOW_CREDENTIALS;
+    }
+
+    public void setACCESS_CONTROL_ALLOW_CREDENTIALS(String ACCESS_CONTROL_ALLOW_CREDENTIALS) {
+        this.ACCESS_CONTROL_ALLOW_CREDENTIALS = ACCESS_CONTROL_ALLOW_CREDENTIALS;
+    }
+
+    public String getACCESS_CONTROL_ALLOW_METHODS() {
+        return ACCESS_CONTROL_ALLOW_METHODS;
+    }
+
+    public void setACCESS_CONTROL_ALLOW_METHODS(String ACCESS_CONTROL_ALLOW_METHODS) {
+        this.ACCESS_CONTROL_ALLOW_METHODS = ACCESS_CONTROL_ALLOW_METHODS;
+    }
+
+    // </editor-fold>
     public Res(OutputStream outputStream) {
         this.outpuStream = outputStream;
         this.CRLF = "\n\r";
         this.HTTP_VERSION = "HTTP/1.1";
         this.RESPONSE_CODE = "200";
         this.RESPONSE_MESSAGE = "OK";
-        this.CONTENT_TYPE = "Content-type: text/html";
-        this.CONTENT_LENGHT = "0";
+        this.CONTENT_TYPE = "content-type: text/html";
+        this.CONTENT_LENGHT = "content-length: 0";
+        this.ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin: *";
+        this.ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization";
+        this.ACCESS_CONTROL_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials: true";
+        this.ACCESS_CONTROL_ALLOW_METHODS = "Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS,HEAD";
     }
 
     // <editor-fold desc="Actions">
     public String send(String bodyRes) {
-        String res = null;
+        StringBuilder stringBuilder = new StringBuilder();
         try {
-            res = this.getHTTP_VERSION() + " " + this.getRESPONSE_CODE() + " " + this.getRESPONSE_MESSAGE() + this.getCRLF()
-                    + this.getCONTENT_LENGHT(bodyRes) + " " + this.getCONTENT_TYPE() + this.getCRLF() + this.getCRLF()
-                    + bodyRes
-                    + this.getCRLF() + this.getCRLF();
-            this.outpuStream.write(res.getBytes());
+            stringBuilder.append(this.getHTTP_VERSION()).append(" ");
+            stringBuilder.append(this.getRESPONSE_CODE()).append(" ");
+            stringBuilder.append(this.getRESPONSE_MESSAGE()).append(" ");
+            stringBuilder.append(this.getCRLF());
+            stringBuilder.append(this.getCRLF());
+            //Headers
+            stringBuilder.append(this.getCONTENT_LENGHT(bodyRes)).append(" ");
+            //stringBuilder.append(this.getCONTENT_TYPE()).append(" ");
+            stringBuilder.append(this.getCRLF());
+            stringBuilder.append(this.getCRLF());
+            //Body
+            stringBuilder.append(bodyRes);
+            stringBuilder.append(this.getCRLF());
+            stringBuilder.append(this.getCRLF());
+            System.out.println(stringBuilder.toString());
+            this.outpuStream.write(stringBuilder.toString().getBytes());
         } catch (IOException e) {
             LOGGER.log(Level.INFO, "Error while sending response {0}", e);
         }
-        return res;
+        return stringBuilder.toString();
     }
 
     public void close() throws IOException {

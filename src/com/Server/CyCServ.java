@@ -44,7 +44,6 @@ public class CyCServ {
     }
 
     // </editor-fold>
-
     // <editor-fold desc="Actions">
     public static CyCServ newInstance() {
         if (cyCServ == null) {
@@ -55,16 +54,21 @@ public class CyCServ {
 
     public void listen() {
         try {
-            serverSocket = new ServerSocket(this.port);
-            Runnable r = new Core(this);
-            Thread runCore = new Thread(r);
+            serverSocket = new ServerSocket(this.getPort());
+            Thread runCore = new Thread(new Core(this));
             runCore.start();
-            String msj = "The server is running on port " + this.port +"\nAnd waiting for connections ...";
-            LOGGER.log(Level.WARNING, msj);
+            StringBuilder msj = new StringBuilder("The server is running on port ");
+            msj.append(this.getPort());
+            msj.append("\nAnd waiting for connections ...");
+            LOGGER.log(Level.INFO, msj.toString());
         } catch (IOException e) {
-            String msj = "The server fail during his creation \nCause: " + e.getMessage();
-            LOGGER.log(Level.ALL, msj);
+            LOGGER.log(Level.ALL, "The server fail during his creation \nCause: ", e.getMessage());
         }
+    }
+
+    public void listen(int port) {
+        this.port = port;
+        this.listen();
     }
     // </editor-fold>
 

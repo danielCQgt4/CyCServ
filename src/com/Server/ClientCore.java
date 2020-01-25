@@ -3,7 +3,6 @@ package com.Server;
 import com.Utils.Req;
 import com.Utils.Res;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,7 +21,7 @@ public class ClientCore implements Runnable {
     @Override
     public void run() {
         try {
-            this.request = new Req(socket.getInputStream());
+            this.request = new Req(socket);
             this.respose = new Res(socket.getOutputStream());
             String bodyRes = "<!DOCTYPE html>"
                     + "<html>"
@@ -33,7 +32,6 @@ public class ClientCore implements Runnable {
                     + "    </head>"
                     + "    <body>"
                     + "        <h1>HelloWorld</h1>"
-                    + "        <p>" + this.request.getData() + "</p>"
                     + "    </body>"
                     + "</html>";
             respose.send(bodyRes);
@@ -41,19 +39,15 @@ public class ClientCore implements Runnable {
             LOGGER.log(Level.INFO, "The process during the communication FAIL {0}", e);
         } finally {
             try {
-                if (this.request.getInputStream() != null) {
-                    this.request.getInputStream().close();
-                }
-            } catch (IOException ex) {
+                this.request.getInputStream().close();
+            } catch (IOException | NullPointerException ex) {
             }
             try {
-                if (this.respose.getOutputStream() != null) {
-                    this.respose.getOutputStream().close();
-                }
-            } catch (IOException ex) {
+                this.respose.getOutputStream().close();
+            } catch (IOException | NullPointerException ex) {
             }
             try {
-                if (this.socket != null) {
+                if (this.socket.isConnected()) {
                     this.socket.close();
                 }
             } catch (IOException ex) {
