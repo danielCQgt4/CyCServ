@@ -127,7 +127,6 @@ public class Res {
             stringBuilder.append(bodyRes);
             stringBuilder.append(this.getCRLF());
             stringBuilder.append(this.getCRLF());
-            System.out.println(stringBuilder.toString());
             this.outpuStream.write(stringBuilder.toString().getBytes());
         } catch (IOException e) {
             LOGGER.log(Level.INFO, "Error while sending response {0}", e);
