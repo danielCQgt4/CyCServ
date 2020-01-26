@@ -4,6 +4,8 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/D:/Projects/JavaProjects/Desktop/CyCServ/src/Running/Main.java</file>
+            <file>file:/D:/Projects/JavaProjects/Desktop/CyCServ/src/com/Utils/HttpIdentifiers.java</file>
+            <file>file:/D:/Projects/JavaProjects/Desktop/CyCServ/src/com/Utils/Req.java</file>
             <file>file:/D:/Projects/JavaProjects/Desktop/CyCServ/src/com/Server/ClientCore.java</file>
             <file>file:/D:/Projects/JavaProjects/Desktop/CyCServ/src/com/Utils/Res.java</file>
             <file>file:/D:/Projects/JavaProjects/Desktop/CyCServ/src/com/Server/Core.java</file>

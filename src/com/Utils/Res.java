@@ -116,10 +116,11 @@ public class Res {
             stringBuilder.append(this.getRESPONSE_CODE()).append(" ");
             stringBuilder.append(this.getRESPONSE_MESSAGE()).append(" ");
             stringBuilder.append(this.getCRLF());
-            stringBuilder.append(this.getCRLF());
             //Headers
-            stringBuilder.append(this.getCONTENT_LENGHT(bodyRes)).append(" ");
-            //stringBuilder.append(this.getCONTENT_TYPE()).append(" ");
+            stringBuilder.append(" ").append("\n");
+            stringBuilder.append(this.getCONTENT_LENGHT(bodyRes)).append("\n");
+            stringBuilder.append(this.getCONTENT_TYPE()).append("\n");
+            stringBuilder.append("test: value").append("\n");
             stringBuilder.append(this.getCRLF());
             stringBuilder.append(this.getCRLF());
             //Body
