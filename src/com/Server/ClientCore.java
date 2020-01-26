@@ -21,7 +21,6 @@ public class ClientCore implements Runnable {
     @Override
     public void run() {
         try {
-            //System.out.println("New connection from " + this.socket.getInetAddress());
             this.request = new Req(socket);
             this.respose = new Res(socket.getOutputStream());
             String bodyRes = "<!DOCTYPE html>"

@@ -37,6 +37,16 @@ public final class Req extends HttpIdentifiers {
     }
 
     public void decodeRequest() {
+//        HttpParser httpParser = new HttpParser(this.getInputStream());
+//        this.setMethod(httpParser.getMethod());
+//        this.setParams(httpParser.getParams());
+//        this.setReqHeaders(httpParser.getHeaders());
+//        this.setHttpVersion("HTTP/" + httpParser.getMethod());
+//        System.out.println("Method" + this.getMethod());
+//        System.out.println("Params");
+//        this.getParams().forEach((k, v) -> System.out.println("     key: " + k + "value: " + v));
+//        System.out.println("Headers");
+//        this.getReqHeaders().forEach((k, v) -> System.out.println("     key: " + k + "value: " + v));
         boolean method = false;
         StringBuilder value = new StringBuilder();
         String data = getData();
@@ -55,8 +65,10 @@ public final class Req extends HttpIdentifiers {
         }
         i++;
         if (method && this.getMethod().equals("GET")) {
+            System.out.println(data);
             decodeGETRequest(data, i);
         } else if (method && this.getMethod().equals("POST")) {
+            System.out.println("\n\nData received\n" + data); ///// TODO delete this line
             decodePOSTRequest(data, i);
         } else if (method && this.getMethod().equals("PUT")) {
             // TODO Handle PUT request
@@ -65,7 +77,6 @@ public final class Req extends HttpIdentifiers {
             // TODO Handle DELETE request
             System.out.println("Delete request");
         }
-        //System.out.println(data); ///// TODO delete this line
     }
 
     private void decodeGETRequest(String data, int start) {
@@ -115,30 +126,59 @@ public final class Req extends HttpIdentifiers {
 
     private void decodePOSTRequest(String data, int start) {
         boolean route = false,
+                bodyType = false,
                 versionHttp = false,
+                headers = false,
                 mode = false;
+        String temp = "";
         StringBuilder value = new StringBuilder();
         StringBuilder key = new StringBuilder();
         for (int i = start; i < data.length(); i++) {
+            // REAL CODE
             if (!route) {
                 if (data.charAt(i) != 32) {
                     value.append(data.charAt(i));
                 } else {
-                    this.setRoute(value.toString().replace("%20", ""));
+                    String vRoute = value.toString().replace("%20", "");
+
+                    temp += "Route: " + vRoute + "\n";
+
+                    bodyType = vRoute.indexOf('?') >= 0;
+                    this.setRoute(vRoute);
                     value.setLength(0);
                     route = true;
                 }
-            } else if (!versionHttp) {
-                if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
-                    value.append(data.charAt(i));
-                } else {
-                    this.setHttpVersion(value.toString().replace("\n\r", ""));
-                    value.setLength(0);
-                    versionHttp = true;
-                }
             } else {
-                if ((i + 3) < data.length()) {
-                    if (data.charAt(i) != 13 && data.charAt(i + 1) != 10 && data.charAt(i + 2) != 13 && data.charAt(i + 3) != 10) {
+                if (!bodyType) {
+
+                    if (!versionHttp) {
+                        if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
+                            value.append(data.charAt(i));
+                        } else {
+
+                            temp += "HTTP/VERSION: " + value.toString().replace("\n\r", "") + "\n";
+
+                            this.setHttpVersion(value.toString().replace("\n\r", ""));
+                            value.setLength(0);
+                            versionHttp = true;
+                        }
+                    } else {
+
+                    }
+
+                } else {
+                    if (!versionHttp) {
+                        if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
+                            value.append(data.charAt(i));
+                        } else {
+
+                            temp += "HTTP/VERSION: " + value.toString().replace("\n\r", "") + "\n";
+
+                            this.setHttpVersion(value.toString().replace("\n\r", ""));
+                            value.setLength(0);
+                            versionHttp = true;
+                        }
+                    } else {
                         if (!mode) {
                             if (data.charAt(i) != 58) {
                                 key.append(data.charAt(i));
@@ -149,6 +189,11 @@ public final class Req extends HttpIdentifiers {
                             if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
                                 value.append(data.charAt(i));
                             } else {
+
+                                temp += "Header -> " + key.toString().replace("\n", "").replace("\r", "")
+                                        + ":"
+                                        + value.toString().replace(" ", "") + "\n";
+
                                 this.addReqHeader(key.toString().replace("\n", "").replace("\r", ""),
                                         value.toString().replace(" ", ""));
                                 key.setLength(0);
@@ -156,14 +201,59 @@ public final class Req extends HttpIdentifiers {
                                 mode = !mode;
                             }
                         }
-                    } else {
-                        //System.out.print(data.charAt(i));
                     }
-                } else {
-                    //System.out.print(data.charAt(i));
                 }
             }
+
+//              CODE BASE            
+//            if (!route) {
+//                if (data.charAt(i) != 32) {
+//                    value.append(data.charAt(i));
+//                } else {
+//
+//                    temp += "Route: " + value.toString().replace("%20", "") + "\n";
+//
+//                    this.setRoute(value.toString().replace("%20", ""));
+//                    value.setLength(0);
+//                    route = true;
+//                }
+//            } else if (!versionHttp) {
+//                if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
+//                    value.append(data.charAt(i));
+//                } else {
+//
+//                    temp += "HTTP/VERSION: " + value.toString().replace("\n\r", "") + "\n";
+//
+//                    this.setHttpVersion(value.toString().replace("\n\r", ""));
+//                    value.setLength(0);
+//                    versionHttp = true;
+//                }
+//            } else {
+//                if (!mode) {
+//                    if (data.charAt(i) != 58) {
+//                        key.append(data.charAt(i));
+//                    } else {
+//                        mode = !mode;
+//                    }
+//                } else {
+//                    if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
+//                        value.append(data.charAt(i));
+//                    } else {
+//
+//                        temp += key.toString().replace("\n", "").replace("\r", "") + 
+//                                ":" +
+//                                value.toString().replace(" ", "") + "\n";
+//
+//                        this.addReqHeader(key.toString().replace("\n", "").replace("\r", ""),
+//                                value.toString().replace(" ", ""));
+//                        key.setLength(0);
+//                        value.setLength(0);
+//                        mode = !mode;
+//                    }
+//                }
+//            }
         }
+        //System.out.println("\n\nData decoded\n" + temp);
     }
 
 }

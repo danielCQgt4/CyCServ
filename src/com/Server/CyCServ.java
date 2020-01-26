@@ -9,9 +9,10 @@ public class CyCServ {
 
     // <editor-fold desc="Properties">
     private static final Logger LOGGER = Logger.getLogger("com.Server");
-    private int port;
-    private static CyCServ cyCServ;
     private static ServerSocket serverSocket;
+    private static CyCServ cyCServ;
+    private String host;
+    private int port;
     // </editor-fold>
 
     // <editor-fold desc="Constructors">
@@ -23,6 +24,10 @@ public class CyCServ {
     // </editor-fold>
 
     // <editor-fold desc="Getters and Setters">
+    public String getHost() {
+        return this.host;
+    }
+
     public int getPort() {
         return port;
     }
@@ -42,27 +47,23 @@ public class CyCServ {
     public void setServerSocket(ServerSocket _serverSocket) {
         serverSocket = _serverSocket;
     }
-
     // </editor-fold>
-    // <editor-fold desc="Actions">
-    public static CyCServ newInstance() {
-        if (cyCServ == null) {
-            cyCServ = new CyCServ();
-        }
-        return cyCServ;
-    }
 
+    // <editor-fold desc="Actions">
     public void listen() {
         try {
             serverSocket = new ServerSocket(this.getPort());
+            this.host = serverSocket.getInetAddress() + ":" + this.port;
             Thread runCore = new Thread(new Core(this));
             runCore.start();
             StringBuilder msj = new StringBuilder("The server is running on port ");
-            msj.append(this.getPort());
-            msj.append("\nAnd waiting for connections ...");
+            msj.append(this.getPort())
+                    .append("\nAnd waiting for connections ...");
             LOGGER.log(Level.INFO, msj.toString());
+        } catch (IllegalArgumentException e) {
+            LOGGER.log(Level.SEVERE, "The port {0} is not valid ", this.getPort());
         } catch (IOException e) {
-            LOGGER.log(Level.ALL, "The server fail during his creation \nCause: ", e.getMessage());
+            LOGGER.log(Level.SEVERE, "The server fail during his creation \nCause: ", e.getMessage());
         }
     }
 
@@ -73,5 +74,11 @@ public class CyCServ {
     // </editor-fold>
 
     // <editor-fold desc="Settings">
+    public static CyCServ newInstance() {
+        if (cyCServ == null) {
+            cyCServ = new CyCServ();
+        }
+        return cyCServ;
+    }
     // </editor-fold>
 }

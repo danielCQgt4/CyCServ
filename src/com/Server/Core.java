@@ -1,7 +1,8 @@
 package com.Server;
 
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.Socket;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Core implements Runnable {
@@ -23,7 +24,7 @@ public class Core implements Runnable {
                 Thread runClientCore = new Thread(clientCore);
                 runClientCore.start();
             } catch (IOException e) {
-                System.err.println("The communication fail with a client\nCause: " + e.getMessage());
+                LOGGER.log(Level.INFO, "The communication fail with a client\nCause: " , e.getMessage());
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.Utils;
 
+import com.Server.CyCServ;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.logging.Level;
@@ -7,8 +8,10 @@ import java.util.logging.Logger;
 
 public class Res {
 
+    //TODO handle and make fix for header(Works already)
     // <editor-fold desc="Properties">
     private static final Logger LOGGER = Logger.getLogger("com.Utils");
+    private final CyCServ cyCServ = CyCServ.newInstance();
     private final String CRLF;
     private final String HTTP_VERSION;
     private final String RESPONSE_CODE;
@@ -16,9 +19,6 @@ public class Res {
     private String CONTENT_LENGHT;
     private String CONTENT_TYPE;
     private String ACCESS_CONTROL_ALLOW_ORIGIN;
-    private String ACCESS_CONTROL_ALLOW_HEADERS;
-    private String ACCESS_CONTROL_ALLOW_CREDENTIALS;
-    private String ACCESS_CONTROL_ALLOW_METHODS;
     private final OutputStream outpuStream;
     // </editor-fold>
 
@@ -68,32 +68,9 @@ public class Res {
     public void setACCESS_CONTROL_ALLOW_ORIGIN(String ACCESS_CONTROL_ALLOW) {
         this.ACCESS_CONTROL_ALLOW_ORIGIN = ACCESS_CONTROL_ALLOW;
     }
-
-    public String getACCESS_CONTROL_ALLOW_HEADERS() {
-        return ACCESS_CONTROL_ALLOW_HEADERS;
-    }
-
-    public void setACCESS_CONTROL_ALLOW_HEADERS(String ACCESS_CONTROL_ALLOW_HEADERS) {
-        this.ACCESS_CONTROL_ALLOW_HEADERS = ACCESS_CONTROL_ALLOW_HEADERS;
-    }
-
-    public String getACCESS_CONTROL_ALLOW_CREDENTIALS() {
-        return ACCESS_CONTROL_ALLOW_CREDENTIALS;
-    }
-
-    public void setACCESS_CONTROL_ALLOW_CREDENTIALS(String ACCESS_CONTROL_ALLOW_CREDENTIALS) {
-        this.ACCESS_CONTROL_ALLOW_CREDENTIALS = ACCESS_CONTROL_ALLOW_CREDENTIALS;
-    }
-
-    public String getACCESS_CONTROL_ALLOW_METHODS() {
-        return ACCESS_CONTROL_ALLOW_METHODS;
-    }
-
-    public void setACCESS_CONTROL_ALLOW_METHODS(String ACCESS_CONTROL_ALLOW_METHODS) {
-        this.ACCESS_CONTROL_ALLOW_METHODS = ACCESS_CONTROL_ALLOW_METHODS;
-    }
-
     // </editor-fold>
+
+    // <editor-fold desc="Constructor">
     public Res(OutputStream outputStream) {
         this.outpuStream = outputStream;
         this.CRLF = "\n\r";
@@ -102,11 +79,10 @@ public class Res {
         this.RESPONSE_MESSAGE = "OK";
         this.CONTENT_TYPE = "content-type: text/html";
         this.CONTENT_LENGHT = "content-length: 0";
-        this.ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin: *";
-        this.ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization";
-        this.ACCESS_CONTROL_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials: true";
-        this.ACCESS_CONTROL_ALLOW_METHODS = "Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS,HEAD";
+        //this.ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin: " + this.cyCServ.getHost(); TODO UNCOMMENT
+        this.ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin: *"; // TODO DELETE
     }
+    // <editor-fold>
 
     // <editor-fold desc="Actions">
     public String send(String bodyRes) {
@@ -120,7 +96,7 @@ public class Res {
             stringBuilder.append(" ").append("\n");
             stringBuilder.append(this.getCONTENT_LENGHT(bodyRes)).append("\n");
             stringBuilder.append(this.getCONTENT_TYPE()).append("\n");
-            stringBuilder.append("test: value").append("\n");
+            stringBuilder.append(this.getACCESS_CONTROL_ALLOW_ORIGIN()).append("\n");
             stringBuilder.append(this.getCRLF());
             stringBuilder.append(this.getCRLF());
             //Body

@@ -9,8 +9,8 @@ public class HttpIdentifiers {
 
     // <editor-fold desc="Request">
     private final InputStream inputStream;
-    private final HashMap<String, String> reqHeaders = new HashMap<>();
-    private final HashMap<String, String> params = new HashMap<>();
+    private HashMap<String, String> reqHeaders;
+    private HashMap<String, String> params;
     private String dataRequest;
     private String method;
     private String route;
@@ -19,6 +19,8 @@ public class HttpIdentifiers {
     public HttpIdentifiers(Socket socket) throws IOException {
         this.socket = socket;
         this.inputStream = socket.getInputStream();
+        this.reqHeaders = new HashMap<>();
+        this.params = new HashMap<>();
     }
 
     public String getDataRequest() {
@@ -65,17 +67,37 @@ public class HttpIdentifiers {
         this.httpVersion = httpVersion;
     }
 
-    public String addParam(String key, String value){
+    public String addParam(String key, String value) {
         return params.put(key, value);
     }
-    
-    public String getParam(String key){
+
+    public String getParam(String key) {
         return params.get(key);
     }
-    
+
+    public HashMap<String, String> getReqHeaders() {
+        return reqHeaders;
+    }
+
+    public void setReqHeaders(HashMap<String, String> reqHeaders) {
+        this.reqHeaders = reqHeaders;
+    }
+
+    public HashMap<String, String> getParams() {
+        return params;
+    }
+
+    public void setParams(HashMap<String, String> params) {
+        this.params = params;
+    }
     // </editor-fold>
+
     // <editor-fold desc="Response">
+    public void fill() {
+
+    }
     // </editor-fold>
+
     // <editor-fold desc="General">
     private Socket socket;
 
@@ -86,6 +108,5 @@ public class HttpIdentifiers {
     public void setSocket(Socket socket) {
         this.socket = socket;
     }
-
     // </editor-fold>
 }
