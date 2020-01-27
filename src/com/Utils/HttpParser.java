@@ -1,254 +1,275 @@
 package com.Utils;
 
-/**
- * Copyright (C) 2004 Juho Vh-Herttua
- *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 2 of the License, or (at your option) any later
- * version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
- * Place - Suite 330, Boston, MA 02111-1307, USA.
- */
-import java.io.*;
-import java.util.*;
-import java.text.*;
-import java.net.URLDecoder;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 
-public class HttpParser {
+public final class HttpParser {
 
-    private static final String[][] HTTPREPLIES = {{"100", "Continue"},
-    {"101", "Switching Protocols"},
-    {"200", "OK"},
-    {"201", "Created"},
-    {"202", "Accepted"},
-    {"203", "Non-Authoritative Information"},
-    {"204", "No Content"},
-    {"205", "Reset Content"},
-    {"206", "Partial Content"},
-    {"300", "Multiple Choices"},
-    {"301", "Moved Permanently"},
-    {"302", "Found"},
-    {"303", "See Other"},
-    {"304", "Not Modified"},
-    {"305", "Use Proxy"},
-    {"306", "(Unused)"},
-    {"307", "Temporary Redirect"},
-    {"400", "Bad Request"},
-    {"401", "Unauthorized"},
-    {"402", "Payment Required"},
-    {"403", "Forbidden"},
-    {"404", "Not Found"},
-    {"405", "Method Not Allowed"},
-    {"406", "Not Acceptable"},
-    {"407", "Proxy Authentication Required"},
-    {"408", "Request Timeout"},
-    {"409", "Conflict"},
-    {"410", "Gone"},
-    {"411", "Length Required"},
-    {"412", "Precondition Failed"},
-    {"413", "Request Entity Too Large"},
-    {"414", "Request-URI Too Long"},
-    {"415", "Unsupported Media Type"},
-    {"416", "Requested Range Not Satisfiable"},
-    {"417", "Expectation Failed"},
-    {"500", "Internal Server Error"},
-    {"501", "Not Implemented"},
-    {"502", "Bad Gateway"},
-    {"503", "Service Unavailable"},
-    {"504", "Gateway Timeout"},
-    {"505", "HTTP Version Not Supported"}};
+    private static final Logger LOGGER = Logger.getLogger("com.Utils");
+    private final String httpData;
+    private final String httpInfoLine;
+    private final String httpHeaders;
+    private final String httpBody;
 
-    private final BufferedReader reader;
-    private String method, url;
-    private HashMap<String, String> header, param;
-    private final int[] ver;
-
-    public HttpParser(InputStream is) {
-        reader = new BufferedReader(new InputStreamReader(is));
-        method = "";
-        url = "";
-        header = new HashMap<>();
-        param = new HashMap<>();
-        ver = new int[2];
+    // <editor-fold desc="INIT">
+    public HttpParser(String data) {
+        this.httpData = data;
+        this.httpInfoLine = setHttpInfoLine(this.httpData);
+        this.httpHeaders = setHttpHeaders(this.httpData);
+        this.httpBody = setHttpBody(this.httpData);
+        this.decodeData();
     }
 
-    public int parseRequest() throws IOException {
-        String initial, prms[], cmd[], temp[];
-        int ret, idx, i;
-
-        ret = 200; // default is OK now
-        initial = reader.readLine();
-        if (initial == null || initial.length() == 0) {
-            return 0;
-        }
-        if (Character.isWhitespace(initial.charAt(0))) {
-            // starting whitespace, return bad request
-            return 400;
-        }
-
-        cmd = initial.split("\\s");
-        if (cmd.length != 3) {
-            return 400;
-        }
-
-        if (cmd[2].indexOf("HTTP/") == 0 && cmd[2].indexOf('.') > 5) {
-            temp = cmd[2].substring(5).split("\\.");
-            try {
-                ver[0] = Integer.parseInt(temp[0]);
-                ver[1] = Integer.parseInt(temp[1]);
-            } catch (NumberFormatException nfe) {
-                ret = 400;
-            }
-        } else {
-            ret = 400;
-        }
-
-        if (cmd[0].equals("GET") || cmd[0].equals("HEAD")) {
-            method = cmd[0];
-
-            idx = cmd[1].indexOf('?');
-            if (idx < 0) {
-                url = cmd[1];
-            } else {
-                url = URLDecoder.decode(cmd[1].substring(0, idx), "ISO-8859-1");
-                prms = cmd[1].substring(idx + 1).split("&");
-
-                param = new HashMap<>();
-                for (i = 0; i < prms.length; i++) {
-                    temp = prms[i].split("=");
-                    if (temp.length == 2) {
-                        // we use ISO-8859-1 as temporary charset and then
-                        // String.getBytes("ISO-8859-1") to get the data
-                        param.put(URLDecoder.decode(temp[0], "ISO-8859-1"),
-                                URLDecoder.decode(temp[1], "ISO-8859-1"));
-                    } else if (temp.length == 1 && prms[i].indexOf('=') == prms[i].length() - 1) {
-                        // handle empty string separatedly
-                        param.put(URLDecoder.decode(temp[0], "ISO-8859-1"), "");
-                    }
-                }
-            }
-            parseHeaders();
-            if (header == null) {
-                ret = 400;
-            }
-        } else if (cmd[0].equals("POST")) {
-            ret = 501; // not implemented
-        } else if (ver[0] == 1 && ver[1] >= 1) {
-            if (cmd[0].equals("OPTIONS")
-                    || cmd[0].equals("PUT")
-                    || cmd[0].equals("DELETE")
-                    || cmd[0].equals("TRACE")
-                    || cmd[0].equals("CONNECT")) {
-                ret = 501; // not implemented
-            }
-        } else {
-            // meh not understand, bad request
-            ret = 400;
-        }
-
-        if (ver[0] == 1 && ver[1] >= 1 && getHeader("Host") == null) {
-            ret = 400;
-        }
-
-        return ret;
-    }
-
-    private void parseHeaders() throws IOException {
-        String line;
-        int idx;
-
-        // that fscking rfc822 allows multiple lines, we don't care now
-        line = reader.readLine();
-        while (!line.equals("")) {
-            idx = line.indexOf(':');
-            if (idx < 0) {
-                header = null;
-                break;
-            } else {
-                header.put(line.substring(0, idx).toLowerCase(), line.substring(idx + 1).trim());
-            }
-            line = reader.readLine();
-        }
-    }
-
-    public String getMethod() {
-        return method;
-    }
-
-    public String getHeader(String key) {
-        if (header != null) {
-            return (String) header.get(key.toLowerCase());
-        } else {
+    private String setHttpInfoLine(String data) {
+        try {
+            return data.substring(0, data.indexOf("\n"));
+        } catch (Exception e) {
             return null;
         }
     }
 
-    public HashMap<String, String> getHeaders() {
-        return header;
-    }
-
-    public String getRequestURL() {
-        return url;
-    }
-
-    public String getParam(String key) {
-        return (String) param.get(key);
-    }
-
-    public HashMap<String, String> getParams() {
-        return param;
-    }
-
-    public String getVersion() {
-        return ver[0] + "." + ver[1];
-    }
-
-    public int compareVersion(int major, int minor) {
-        if (major < ver[0]) {
-            return -1;
-        } else if (major > ver[0]) {
-            return 1;
-        } else if (minor < ver[1]) {
-            return -1;
-        } else if (minor > ver[1]) {
-            return 1;
-        } else {
-            return 0;
+    private String setHttpHeaders(String data) {
+        try {
+            return data.substring(data.indexOf("\n") + 1, data.indexOf("\n\r"));
+        } catch (Exception e) {
+            return null;
         }
     }
 
-    public static String getHttpReply(int codevalue) {
-        String key, ret;
-        int i;
+    private String setHttpBody(String data) {
+        try {
+            return data.substring(data.indexOf("\n\r") + 3);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    // </editor-fold>
 
-        ret = null;
-        key = "" + codevalue;
-        for (i = 0; i < HTTPREPLIES.length; i++) {
-            if (HTTPREPLIES[i][0].equals(key)) {
-                ret = codevalue + " " + HTTPREPLIES[i][1];
-                break;
+    // <editor-fold desc="GeneralActions">
+    private void decodeData() {
+        System.out.println("Infoline:\n" + this.httpInfoLine);
+        System.out.println("\n\nHeaders:\n" + this.httpHeaders);
+        System.out.println("\n\nBody:\n" + this.httpBody);
+    }
+
+    private String setHttpMethod(String infoLine) {
+        return null;
+    }
+    // </editor-fold>
+
+    // <editor-fold desc="getGET">
+    // </editor-fold>
+    
+    // <editor-fold desc="getPOST">
+    // </editor-fold>
+    
+    // <editor-fold desc="Pre">
+/*
+    public void decodeRequest() {
+        boolean method = false;
+        StringBuilder value = new StringBuilder();
+        String data = getData();
+        int i;
+        for (i = 0; i < data.length(); i++) {
+            if (!method) {
+                if (data.charAt(i) != 32) {
+                    value.append(data.charAt(i));
+                } else {
+                    this.setMethod(value.toString().toUpperCase());
+                    value.setLength(0);
+                    method = true;
+                    break;
+                }
             }
         }
-
-        return ret;
+        i++;
+        System.out.println(data.replace("\n", "@ \n").replace("\r", "#"));
+        if (method && this.getMethod().equals("GET")) {
+            //decodeGETRequest(data, i);
+        } else if (method && this.getMethod().equals("POST")) {
+            //decodePOSTRequest(data, i);
+        } else if (method && this.getMethod().equals("PUT")) {
+            // TODO Handle PUT request
+        } else if (method && this.getMethod().equals("DELETE")) {
+            // TODO Handle DELETE request
+        }
     }
 
-    public static String getDateHeader() {
-        SimpleDateFormat format;
-        String ret;
-
-        format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
-        format.setTimeZone(TimeZone.getTimeZone("GMT"));
-        ret = "Date: " + format.format(new Date()) + " GMT";
-
-        return ret;
+    private void decodeGETRequest(String data, int start) {
+        boolean route = false,
+                versionHttp = false,
+                mode = false;
+        StringBuilder value = new StringBuilder();
+        StringBuilder key = new StringBuilder();
+        for (int i = start; i < data.length(); i++) {
+            if (!route) {
+                if (data.charAt(i) != 32) {
+                    value.append(data.charAt(i));
+                } else {
+                    this.setRoute(value.toString().replace("%20", ""));
+                    value.setLength(0);
+                    route = true;
+                }
+            } else if (!versionHttp) {
+                if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
+                    value.append(data.charAt(i));
+                } else {
+                    this.setHttpVersion(value.toString().replace("\n\r", ""));
+                    value.setLength(0);
+                    versionHttp = true;
+                }
+            } else {
+                if (!mode) {
+                    if (data.charAt(i) != 58) {
+                        key.append(data.charAt(i));
+                    } else {
+                        mode = !mode;
+                    }
+                } else {
+                    if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
+                        value.append(data.charAt(i));
+                    } else {
+                        this.addReqHeader(key.toString().replace("\n", "").replace("\r", ""),
+                                value.toString().replace(" ", ""));
+                        key.setLength(0);
+                        value.setLength(0);
+                        mode = !mode;
+                    }
+                }
+            }
+        }
     }
+
+    private void decodePOSTRequest(String data, int start) {
+        boolean route = false,
+                bodyType = false,
+                versionHttp = false,
+                headers = false,
+                mode = false;
+        String temp = "";
+        StringBuilder value = new StringBuilder();
+        StringBuilder key = new StringBuilder();
+        for (int i = start; i < data.length(); i++) {
+            // REAL CODE
+            if (!route) {
+                if (data.charAt(i) != 32) {
+                    value.append(data.charAt(i));
+                } else {
+                    String vRoute = value.toString().replace("%20", "");
+
+                    temp += "Route: " + vRoute + "\n";
+
+                    bodyType = vRoute.indexOf('?') >= 0;
+                    this.setRoute(vRoute);
+                    value.setLength(0);
+                    route = true;
+                }
+            } else {
+                if (!bodyType) {
+
+                    if (!versionHttp) {
+                        if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
+                            value.append(data.charAt(i));
+                        } else {
+
+                            temp += "HTTP/VERSION: " + value.toString().replace("\n\r", "") + "\n";
+
+                            this.setHttpVersion(value.toString().replace("\n\r", ""));
+                            value.setLength(0);
+                            versionHttp = true;
+                        }
+                    } else {
+
+                    }
+
+                } else {
+                    if (!versionHttp) {
+                        if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
+                            value.append(data.charAt(i));
+                        } else {
+
+                            temp += "HTTP/VERSION: " + value.toString().replace("\n\r", "") + "\n";
+
+                            this.setHttpVersion(value.toString().replace("\n\r", ""));
+                            value.setLength(0);
+                            versionHttp = true;
+                        }
+                    } else {
+                        if (!mode) {
+                            if (data.charAt(i) != 58) {
+                                key.append(data.charAt(i));
+                            } else {
+                                mode = !mode;
+                            }
+                        } else {
+                            if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
+                                value.append(data.charAt(i));
+                            } else {
+
+                                temp += "Header -> " + key.toString().replace("\n", "").replace("\r", "")
+                                        + ":"
+                                        + value.toString().replace(" ", "") + "\n";
+
+                                this.addReqHeader(key.toString().replace("\n", "").replace("\r", ""),
+                                        value.toString().replace(" ", ""));
+                                key.setLength(0);
+                                value.setLength(0);
+                                mode = !mode;
+                            }
+                        }
+                    }
+                }
+            }
+
+//              CODE BASE            
+//            if (!route) {
+//                if (data.charAt(i) != 32) {
+//                    value.append(data.charAt(i));
+//                } else {
+//
+//                    temp += "Route: " + value.toString().replace("%20", "") + "\n";
+//
+//                    this.setRoute(value.toString().replace("%20", ""));
+//                    value.setLength(0);
+//                    route = true;
+//                }
+//            } else if (!versionHttp) {
+//                if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
+//                    value.append(data.charAt(i));
+//                } else {
+//
+//                    temp += "HTTP/VERSION: " + value.toString().replace("\n\r", "") + "\n";
+//
+//                    this.setHttpVersion(value.toString().replace("\n\r", ""));
+//                    value.setLength(0);
+//                    versionHttp = true;
+//                }
+//            } else {
+//                if (!mode) {
+//                    if (data.charAt(i) != 58) {
+//                        key.append(data.charAt(i));
+//                    } else {
+//                        mode = !mode;
+//                    }
+//                } else {
+//                    if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
+//                        value.append(data.charAt(i));
+//                    } else {
+//
+//                        temp += key.toString().replace("\n", "").replace("\r", "") + 
+//                                ":" +
+//                                value.toString().replace(" ", "") + "\n";
+//
+//                        this.addReqHeader(key.toString().replace("\n", "").replace("\r", ""),
+//                                value.toString().replace(" ", ""));
+//                        key.setLength(0);
+//                        value.setLength(0);
+//                        mode = !mode;
+//                    }
+//                }
+//            }
+        }
+        //System.out.println("\n\nData decoded\n" + temp);
+    }*/
+    // </editor-fold>
 }
