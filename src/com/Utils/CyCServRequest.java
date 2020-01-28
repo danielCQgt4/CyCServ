@@ -31,5 +31,7 @@ public abstract interface CyCServRequest {
     public abstract HashMap<String, String> getParams();
 
     public abstract void setParams(HashMap<String, String> params);
+    
+    public void setHeaders(HashMap<String, String> headers);
     // </editor-fold>    
 }

@@ -11,13 +11,9 @@ public interface CyCServResponse {
 
     public String getHTTP_VERSION();
 
-    public String getRESPONSE_CODE();
-    
-    public void setRESPONSE_CODE(int code);
-
     public String getRESPONSE_MESSAGE();
 
-    public String setCONTENT_LENGHT(String content);
+    public void setCONTENT_LENGHT(String content);
 
     public String getCONTENT_LENGHT();
 

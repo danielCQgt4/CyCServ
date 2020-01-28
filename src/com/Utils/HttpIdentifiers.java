@@ -55,20 +55,7 @@ public class HttpIdentifiers {
         {"504", "Gateway Timeout"},
         {"505", "HTTP Version Not Supported"}};
     private final Socket socket;
-    private int satatus;
-    private HashMap<String, String> headers;
-
-    public void setHeaders(HashMap<String, String> headers) {
-        this.headers = headers;
-    }
-
-    public void setSatatus(int satatus) {
-        this.satatus = satatus;
-    }
-
-    public Socket getSocket() {
-        return socket;
-    }
+    protected HashMap<String, String> headers;
 
     public HttpIdentifiers(Socket socket, boolean type) throws IOException {
         this.socket = socket;
@@ -78,12 +65,18 @@ public class HttpIdentifiers {
             this.params = new HashMap<>();
         } else {
             this.outpuStream = socket.getOutputStream();
+            this.headers = new HashMap<>();
             initResponse();
         }
     }
 
-    public static String[][] getHttpReplies() {
-        return HTTPREPLIES;
+    public String getHttpReplie(int code) {
+        for (String[] line : HTTPREPLIES) {
+            if (line[0].equals(String.valueOf(code))){
+                return line[1];
+            }
+        }
+        return "Bad Request";
     }
     // </editor-fold>
 
@@ -100,71 +93,48 @@ public class HttpIdentifiers {
     protected static final Logger LOGGER = Logger.getLogger("com.Utils");
     protected final String CRLF = "\n\r";
     protected final String HTTP_VERSION = "HTTP/1.1";
-    protected final String RESPONSE_MESSAGE = "OK";
+    protected String RESPONSE_MESSAGE = "OK";
     protected String CONTENT_LENGHT;
     protected String CONTENT_TYPE;
-    protected String ACCESS_CONTROL_ALLOW_ORIGIN;//TEMP localhost:port
+    protected String ACCESS_CONTROL_ALLOW_ORIGIN;
     protected OutputStream outpuStream;
-    protected String RESPONSE_CODE;
+    protected int RESPONSE_CODE;
 
     private void initResponse() {
         this.CONTENT_TYPE = "content-type: text/html";
         this.CONTENT_LENGHT = "content-length: 0";
-        //this.ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin: " + this.cyCServ.getHost(); TODO UNCOMMENT
-        this.ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin: *"; // TODO DELETE
-        
+        this.ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin: " + this.cyCServ.getHost();
+
     }
     // </editor-fold>
 
     // <editor-fold desc="Getters and Setters">
-    public OutputStream getOutputStream() {
-        return this.outpuStream;
+    public void addHeader(String header) {
+        try {
+            String[] headerSplit = header.split(":");
+            if (headerSplit.length == 2) {
+                this.headers.put(headerSplit[0], headerSplit[1]);
+            }
+        } catch (Exception e) {
+
+        }
     }
 
-    public String getCRLF() {
-        return CRLF;
+    public HashMap<String, String> getHeaders() {
+        return this.headers;
     }
 
-    public String getHTTP_VERSION() {
-        return HTTP_VERSION;
+    public Socket getSocket() {
+        return socket;
     }
 
-    public String getRESPONSE_CODE() {
-        return RESPONSE_CODE;
+    public void setRESPONSE_CODE(int status) {
+        this.RESPONSE_CODE = status;
     }
 
-    public String getRESPONSE_MESSAGE() {
-        return RESPONSE_MESSAGE;
+    public int getRESPONSE_CODE() {
+        return this.RESPONSE_CODE;
     }
-
-    public String getCONTENT_LENGHT(String content) {
-        this.CONTENT_LENGHT = "content-length: " + content.length();
-        return CONTENT_LENGHT;
-    }
-
-    public String getCONTENT_LENGHT() {
-        return CONTENT_LENGHT;
-    }
-
-    public String getCONTENT_TYPE() {
-        return CONTENT_TYPE;
-    }
-
-    public String getCONTENT_TYPE(String contentType) {
-        this.CONTENT_TYPE = contentType;
-        return CONTENT_TYPE;
-    }
-
-    public String getACCESS_CONTROL_ALLOW_ORIGIN() {
-        return ACCESS_CONTROL_ALLOW_ORIGIN;
-    }
-
-    public void setACCESS_CONTROL_ALLOW_ORIGIN(String url) {
-        url = url.toLowerCase();
-        url = url.replace("access-control-allow-origin:", "");
-        this.ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin: " + url;
-    }
-    // </editor-fold>
     // </editor-fold>
 
 }

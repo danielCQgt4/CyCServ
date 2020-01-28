@@ -1,7 +1,6 @@
-package com.Utils;
+package com.Handlers;
 
 import java.util.HashMap;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class HttpParser {
@@ -13,7 +12,7 @@ public final class HttpParser {
     private final String httpHeadersString;
     private final String httpBodyString;
     //DATA
-    private int httpStatus;
+    private int httpStatus = 200;
     private String httpMethod;
     private String httpRoute;
     private boolean routeType = false;
@@ -34,7 +33,8 @@ public final class HttpParser {
 
     private String setHttpInfoLine(String data) {
         try {
-            return data.substring(0, data.indexOf("\n"));
+            String info = data.substring(0, data.indexOf("\n"));
+            return info;
         } catch (Exception e) {
             this.httpStatus = 400;
             return null;
@@ -63,11 +63,17 @@ public final class HttpParser {
     // <editor-fold desc="GeneralActions">
     private void decodeData() {
         if (this.httpStatus != 400) {
-            this.setHttpMethod();
-            this.setRoute();
-            this.setHttpVersion();
-            this.setHttpHeaders();
-            this.setHttpBody();
+            if (this.httpInfoLine != null) {
+                this.setHttpMethod();
+                this.setRoute();
+                this.setHttpVersion();
+            }
+            if (this.httpHeadersString != null) {
+                this.setHttpHeaders();
+            }
+            if (this.httpBodyString != null) {
+                this.setHttpBody();
+            }
             if (this.httpStatus != 400) {
                 this.httpStatus = 200;
             }

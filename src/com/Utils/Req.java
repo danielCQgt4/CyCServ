@@ -1,5 +1,6 @@
 package com.Utils;
 
+import com.Handlers.HttpParser;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,14 +38,20 @@ public final class Req extends HttpIdentifiers implements CyCServRequest {
 
     public void decodeRequest() {
         String data = getData();
-        HttpParser httpParser = new HttpParser(data);
-        this.setDataRequest(data);
-        this.setHttpVersion(httpParser.getHttpVersion());
-        this.setMethod(httpParser.getHttpMethod());
-        this.setParams(httpParser.getHttpParams());
-        this.setHeaders(httpParser.getHttpHeaders());
-        this.setRoute(httpParser.getHttpRoute());
-        this.setSatatus(httpParser.getHttpStatus());
+        if (!data.equals("") && !data.isEmpty()) {
+            HttpParser httpParser = new HttpParser(data);
+            this.setDataRequest(data);
+            this.setHttpVersion(httpParser.getHttpVersion());
+            this.setMethod(httpParser.getHttpMethod());
+            this.setParams(httpParser.getHttpParams());
+            this.setHeaders(httpParser.getHttpHeaders());
+            this.setRoute(httpParser.getHttpRoute());
+            this.setRESPONSE_CODE(httpParser.getHttpStatus());
+        }
+        if (this.getRESPONSE_CODE() == 0){
+            this.setRESPONSE_CODE(400);
+        }
+        //System.out.println("Code: " + this.getRESPONSE_CODE());
     }
 
     // <editor-fold desc="Getter and Setters">
@@ -111,6 +118,11 @@ public final class Req extends HttpIdentifiers implements CyCServRequest {
     @Override
     public void setParams(HashMap<String, String> params) {
         super.params = params;
+    }
+
+    @Override
+    public void setHeaders(HashMap<String, String> headers) {
+        super.headers = headers;
     }
     // </editor-fold>
 }

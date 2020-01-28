@@ -17,16 +17,22 @@ public class Res extends HttpIdentifiers implements CyCServResponse {
     private String composeHttpResponse(String body) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(this.getHTTP_VERSION()).append(" ");
-        stringBuilder.append(this.getRESPONSE_CODE()).append(" ");
-        stringBuilder.append(this.getRESPONSE_MESSAGE()).append(" ");
+        stringBuilder.append(super.getRESPONSE_CODE()).append(" ");
+        stringBuilder.append(super.getHttpReplie(super.getRESPONSE_CODE())).append(" ");
         stringBuilder.append(this.getCRLF());
         //Headers
         stringBuilder.append(" ").append("\n");
-        stringBuilder.append(this.getCONTENT_LENGHT(body)).append("\n");
-        stringBuilder.append(this.getCONTENT_TYPE()).append("\n");
+        this.setCONTENT_LENGHT(body);
+        super.addHeader(this.getCONTENT_TYPE());
+//        this.setCONTENT_TYPE();
+//        stringBuilder.append().append("\n");
+        this.getHeaders().forEach((k, v)
+                -> stringBuilder.append(k)
+                        .append(": ")
+                        .append(v)
+                        .append("\n")
+        );
         stringBuilder.append(this.getACCESS_CONTROL_ALLOW_ORIGIN()).append("\n\r\n");
-        //stringBuilder.append(this.getCRLF()).append(this.getCRLF());
-        //stringBuilder.append(this.getCRLF());
         //Body
         stringBuilder.append(body);
         stringBuilder.append(this.getCRLF());
@@ -34,8 +40,8 @@ public class Res extends HttpIdentifiers implements CyCServResponse {
         return stringBuilder.toString();
     }
 
-    public String send(String bodyRes) {
-        String respose = composeHttpResponse(bodyRes);
+    public String send(String body) {
+        String respose = composeHttpResponse(body);
         try {
             this.getOutputStream().write(respose.getBytes());
         } catch (IOException e) {
@@ -88,11 +94,6 @@ public class Res extends HttpIdentifiers implements CyCServResponse {
     }
 
     @Override
-    public String getRESPONSE_CODE() {
-        return super.RESPONSE_CODE;
-    }
-
-    @Override
     public String getRESPONSE_MESSAGE() {
         return super.RESPONSE_MESSAGE;
     }
@@ -112,12 +113,12 @@ public class Res extends HttpIdentifiers implements CyCServResponse {
         return super.ACCESS_CONTROL_ALLOW_ORIGIN;
     }
 
-    @Override
-    public String setCONTENT_LENGHT(String content) {
+//    @Override
+    public void setCONTENT_LENGHT(String content) {
         content = content.toLowerCase();
         content = content.replace("content-length:", "");
         super.CONTENT_LENGHT = "content-length: " + content.length();
-        return super.CONTENT_LENGHT;
+        super.addHeader(super.CONTENT_LENGHT);
     }
 
     @Override
@@ -125,6 +126,7 @@ public class Res extends HttpIdentifiers implements CyCServResponse {
         contentType = contentType.toLowerCase();
         contentType = contentType.replace("content-type:", "");
         super.CONTENT_TYPE = "content-type: " + contentType;
+        super.addHeader(super.CONTENT_TYPE);
     }
 
     @Override
@@ -133,11 +135,5 @@ public class Res extends HttpIdentifiers implements CyCServResponse {
         url = url.replace("access-control-allow-origin:", "");
         super.ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin: " + url;
     }
-
-    @Override
-    public void setRESPONSE_CODE(int code) {
-        super.RESPONSE_CODE = String.valueOf(code);
-    }
-
     // </editor-fold>
 }

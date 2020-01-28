@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import com.Handlers.CyCRouter;
 
 public class CyCServ {
 
@@ -13,6 +14,7 @@ public class CyCServ {
     private static CyCServ cyCServ;
     private String host;
     private int port;
+    private CyCRouter router;
     // </editor-fold>
 
     // <editor-fold desc="Constructors">
@@ -46,6 +48,14 @@ public class CyCServ {
 
     public void setServerSocket(ServerSocket _serverSocket) {
         serverSocket = _serverSocket;
+    }
+    
+    public CyCRouter getRouter(){
+        return this.router;
+    }
+    
+    public void setRouter(CyCRouter router){
+        this.router = router;
     }
     // </editor-fold>
 
