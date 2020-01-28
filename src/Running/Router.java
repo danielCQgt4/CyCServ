@@ -9,6 +9,7 @@ public class Router extends CyCRouter {
     @Override
     public void routing() {
         get("/");
+        get("/img");
     }
 
     @Override
@@ -16,7 +17,10 @@ public class Router extends CyCRouter {
         switch (route) {
             case "/":
                 String param = request.getParam("key");
-                response.send("<h1>hola "+param+"</h1>");
+                response.send("<h1>hola " + param + "</h1>");
+                break;
+            case "/img":
+                response.sendFile("C:\\Users\\danie\\Desktop\\images2.jpg");
                 break;
         }
     }

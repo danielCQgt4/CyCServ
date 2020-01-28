@@ -2,14 +2,22 @@ package com.Utils;
 
 import com.Helpers.CyCServResponse;
 import com.Helpers.HttpIdentifiers;
+import com.Server.CyCServ;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Res extends HttpIdentifiers implements CyCServResponse {
 
     private String httpContent;
+    private final CyCServ cyCServ = CyCServ.newInstance();
 
     // <editor-fold desc="Constructor">
     public Res(Socket socket) throws IOException {
@@ -85,16 +93,35 @@ public class Res extends HttpIdentifiers implements CyCServResponse {
         return respose;
     }
 
+    public void sendFile(String path) {
+        try {
+//            System.out.println(cyCServ.getFileHandler().getContentTypeFromExtension(path.substring(path.indexOf("."))));
+//            this.addHeader(cyCServ.getFileHandler().getContentTypeFromExtension(path.substring(path.indexOf("."))));
+            File file = new File(path);
+            byte[] byFile = new byte[(int) file.length()];
+            FileInputStream inFile = new FileInputStream(file);
+            BufferedInputStream burFile = new BufferedInputStream(inFile);
+            burFile.read(byFile, 0, byFile.length);
+            this.getOutputStream().write(byFile, 0, byFile.length);
+            this.getOutputStream().flush();
+        } catch (FileNotFoundException ex) {
+            this.setRESPONSE_CODE(404);
+            LOGGER.log(Level.INFO, "Error while finding file {0}", ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Res.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     public void close() throws IOException {
         this.getOutputStream().close();
     }
     // </editor-fold>
 
     // <editor-fold desc="Getter and Setters">
-    public String getLasResponse(){
+    public String getLasResponse() {
         return this.httpContent;
     }
-    
+
     @Override
     public OutputStream getOutputStream() {
         return super.outpuStream;

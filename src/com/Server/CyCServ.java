@@ -5,6 +5,7 @@ import java.net.ServerSocket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.Handlers.CyCRouter;
+import com.Handlers.FileHandler;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -23,6 +24,7 @@ public class CyCServ {
     private String viewPath;
     private String error404 = "./com/StaticContent/404.html";
     private String error400 = "./com/StaticContent/400.html";
+    private final FileHandler fileHandler = FileHandler.newInstance();
     // </editor-fold>
 
     // <editor-fold desc="Constructors">
@@ -92,6 +94,10 @@ public class CyCServ {
 
     public void setError400(String error400) {
         this.error400 = error400;
+    }
+
+    public FileHandler getFileHandler() {
+        return fileHandler;
     }
     // </editor-fold>
 
