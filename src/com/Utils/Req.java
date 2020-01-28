@@ -38,7 +38,21 @@ public final class Req extends HttpIdentifiers {
 
     public void decodeRequest() {
         String data = getData();
+//        System.out.println(data + "\n\n\n");
         HttpParser httpParser = new HttpParser(data);
+        this.setDataRequest(data);
+        this.setHttpVersion(httpParser.getHttpVersion());
+        this.setMethod(httpParser.getHttpMethod());
+        this.setParams(httpParser.getHttpParams());
+        this.setReqHeaders(httpParser.getHttpHeaders());
+        this.setRoute(httpParser.getHttpRoute());
+        this.setSatatus(httpParser.getHttpStatus());
+//        System.out.println("Metodo:" + httpParser.getHttpMethod());
+//        System.out.println("Route:" + httpParser.getHttpRoute());
+//        System.out.println("Http\\v:" + httpParser.getHttpVersion());
+//        System.out.println("Status:" + httpParser.getHttpStatus());
+//        httpParser.getHttpHeaders().forEach((k, v) -> System.err.println(k + " k:v " + v));
+//        httpParser.getHttpParams().forEach((k, v) -> System.err.println(k + ":" + v));
     }
 
 }

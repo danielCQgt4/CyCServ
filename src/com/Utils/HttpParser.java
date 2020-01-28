@@ -1,22 +1,34 @@
 package com.Utils;
 
+import java.util.HashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JOptionPane;
 
 public final class HttpParser {
 
+    // <editor-fold desc="Properties">
     private static final Logger LOGGER = Logger.getLogger("com.Utils");
     private final String httpData;
     private final String httpInfoLine;
-    private final String httpHeaders;
-    private final String httpBody;
+    private final String httpHeadersString;
+    private final String httpBodyString;
+    //DATA
+    private int httpStatus;
+    private String httpMethod;
+    private String httpRoute;
+    private boolean routeType = false;
+    private HashMap<String, String> httpParams = new HashMap<>();
+    private String httpVersion;
+    private HashMap<String, String> httpHeaders = new HashMap<>();
+    private String httpBody;
+    // </editor-fold>
 
     // <editor-fold desc="INIT">
     public HttpParser(String data) {
         this.httpData = data;
         this.httpInfoLine = setHttpInfoLine(this.httpData);
-        this.httpHeaders = setHttpHeaders(this.httpData);
-        this.httpBody = setHttpBody(this.httpData);
+        this.httpHeadersString = setHttpHeaders(this.httpData);
+        this.httpBodyString = setHttpBody(this.httpData);
         this.decodeData();
     }
 
@@ -24,6 +36,7 @@ public final class HttpParser {
         try {
             return data.substring(0, data.indexOf("\n"));
         } catch (Exception e) {
+            this.httpStatus = 400;
             return null;
         }
     }
@@ -32,6 +45,7 @@ public final class HttpParser {
         try {
             return data.substring(data.indexOf("\n") + 1, data.indexOf("\n\r"));
         } catch (Exception e) {
+            this.httpStatus = 400;
             return null;
         }
     }
@@ -40,6 +54,7 @@ public final class HttpParser {
         try {
             return data.substring(data.indexOf("\n\r") + 3);
         } catch (Exception e) {
+            this.httpStatus = 400;
             return null;
         }
     }
@@ -47,229 +62,138 @@ public final class HttpParser {
 
     // <editor-fold desc="GeneralActions">
     private void decodeData() {
-        System.out.println("Infoline:\n" + this.httpInfoLine);
-        System.out.println("\n\nHeaders:\n" + this.httpHeaders);
-        System.out.println("\n\nBody:\n" + this.httpBody);
-    }
-
-    private String setHttpMethod(String infoLine) {
-        return null;
-    }
-    // </editor-fold>
-
-    // <editor-fold desc="getGET">
-    // </editor-fold>
-    
-    // <editor-fold desc="getPOST">
-    // </editor-fold>
-    
-    // <editor-fold desc="Pre">
-/*
-    public void decodeRequest() {
-        boolean method = false;
-        StringBuilder value = new StringBuilder();
-        String data = getData();
-        int i;
-        for (i = 0; i < data.length(); i++) {
-            if (!method) {
-                if (data.charAt(i) != 32) {
-                    value.append(data.charAt(i));
-                } else {
-                    this.setMethod(value.toString().toUpperCase());
-                    value.setLength(0);
-                    method = true;
-                    break;
-                }
+        if (this.httpStatus != 400) {
+            this.setHttpMethod();
+            this.setRoute();
+            this.setHttpVersion();
+            this.setHttpHeaders();
+            this.setHttpBody();
+            if (this.httpStatus != 400) {
+                this.httpStatus = 200;
             }
         }
-        i++;
-        System.out.println(data.replace("\n", "@ \n").replace("\r", "#"));
-        if (method && this.getMethod().equals("GET")) {
-            //decodeGETRequest(data, i);
-        } else if (method && this.getMethod().equals("POST")) {
-            //decodePOSTRequest(data, i);
-        } else if (method && this.getMethod().equals("PUT")) {
-            // TODO Handle PUT request
-        } else if (method && this.getMethod().equals("DELETE")) {
-            // TODO Handle DELETE request
+    }
+    // </editor-fold>
+
+    // <editor-fold desc="Headers">
+    private void setHttpHeaders() {
+        HashMap<String, String> headers = new HashMap<>();
+        try {
+            String[] headersSplit = this.httpHeadersString.split("\n");
+            for (String headerContent : headersSplit) {
+                String[] headerContentSplit = headerContent.split(":", 2);
+                headers.put(headerContentSplit[0], headerContentSplit[1].trim());
+            }
+        } catch (Exception e) {
+            this.httpStatus = 400;
+        }
+        this.httpHeaders = headers;
+    }
+
+    // <editor-fold desc="InfoLine">
+    private void setHttpMethod() {
+        try {
+            String method = this.httpInfoLine.substring(0, this.httpInfoLine.indexOf(32));
+            this.httpMethod = method.trim();
+        } catch (Exception e) {
+            this.httpStatus = 400;
         }
     }
 
-    private void decodeGETRequest(String data, int start) {
-        boolean route = false,
-                versionHttp = false,
-                mode = false;
-        StringBuilder value = new StringBuilder();
-        StringBuilder key = new StringBuilder();
-        for (int i = start; i < data.length(); i++) {
-            if (!route) {
-                if (data.charAt(i) != 32) {
-                    value.append(data.charAt(i));
-                } else {
-                    this.setRoute(value.toString().replace("%20", ""));
-                    value.setLength(0);
-                    route = true;
-                }
-            } else if (!versionHttp) {
-                if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
-                    value.append(data.charAt(i));
-                } else {
-                    this.setHttpVersion(value.toString().replace("\n\r", ""));
-                    value.setLength(0);
-                    versionHttp = true;
+    private void setRoute() {
+        try {
+            String route = this.httpInfoLine.substring(this.httpInfoLine.indexOf(32), this.httpInfoLine.lastIndexOf(32));
+            route = route.trim().replace("%20", "");
+            if (route.indexOf("?") > 0) {
+                String[] routeSplit = route.split("\\?");
+                try {
+                    String paramsString = routeSplit[1];
+                    this.httpParams = setParams(paramsString);
+                    this.routeType = false;
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    this.httpStatus = 400;
+                } finally {
+                    route = routeSplit[0];
                 }
             } else {
-                if (!mode) {
-                    if (data.charAt(i) != 58) {
-                        key.append(data.charAt(i));
-                    } else {
-                        mode = !mode;
-                    }
-                } else {
-                    if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
-                        value.append(data.charAt(i));
-                    } else {
-                        this.addReqHeader(key.toString().replace("\n", "").replace("\r", ""),
-                                value.toString().replace(" ", ""));
-                        key.setLength(0);
-                        value.setLength(0);
-                        mode = !mode;
-                    }
-                }
+                this.routeType = true;
             }
+            this.httpRoute = route;
+        } catch (Exception e) {
+            this.httpStatus = 400;
         }
     }
 
-    private void decodePOSTRequest(String data, int start) {
-        boolean route = false,
-                bodyType = false,
-                versionHttp = false,
-                headers = false,
-                mode = false;
-        String temp = "";
-        StringBuilder value = new StringBuilder();
-        StringBuilder key = new StringBuilder();
-        for (int i = start; i < data.length(); i++) {
-            // REAL CODE
-            if (!route) {
-                if (data.charAt(i) != 32) {
-                    value.append(data.charAt(i));
-                } else {
-                    String vRoute = value.toString().replace("%20", "");
-
-                    temp += "Route: " + vRoute + "\n";
-
-                    bodyType = vRoute.indexOf('?') >= 0;
-                    this.setRoute(vRoute);
-                    value.setLength(0);
-                    route = true;
+    private HashMap<String, String> setParams(String paramsString) {
+        HashMap<String, String> param = new HashMap<>();
+        if (!paramsString.equals("")) {
+            try {
+                String[] splitParams = paramsString.split("&");
+                for (String splitParam : splitParams) {
+                    String[] keyValue = splitParam.split("=");
+                    param.put(keyValue[0], keyValue[1]);
                 }
-            } else {
-                if (!bodyType) {
-
-                    if (!versionHttp) {
-                        if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
-                            value.append(data.charAt(i));
-                        } else {
-
-                            temp += "HTTP/VERSION: " + value.toString().replace("\n\r", "") + "\n";
-
-                            this.setHttpVersion(value.toString().replace("\n\r", ""));
-                            value.setLength(0);
-                            versionHttp = true;
-                        }
-                    } else {
-
-                    }
-
-                } else {
-                    if (!versionHttp) {
-                        if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
-                            value.append(data.charAt(i));
-                        } else {
-
-                            temp += "HTTP/VERSION: " + value.toString().replace("\n\r", "") + "\n";
-
-                            this.setHttpVersion(value.toString().replace("\n\r", ""));
-                            value.setLength(0);
-                            versionHttp = true;
-                        }
-                    } else {
-                        if (!mode) {
-                            if (data.charAt(i) != 58) {
-                                key.append(data.charAt(i));
-                            } else {
-                                mode = !mode;
-                            }
-                        } else {
-                            if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
-                                value.append(data.charAt(i));
-                            } else {
-
-                                temp += "Header -> " + key.toString().replace("\n", "").replace("\r", "")
-                                        + ":"
-                                        + value.toString().replace(" ", "") + "\n";
-
-                                this.addReqHeader(key.toString().replace("\n", "").replace("\r", ""),
-                                        value.toString().replace(" ", ""));
-                                key.setLength(0);
-                                value.setLength(0);
-                                mode = !mode;
-                            }
-                        }
-                    }
-                }
+            } catch (Exception e) {
+                this.httpStatus = 400;
             }
-
-//              CODE BASE            
-//            if (!route) {
-//                if (data.charAt(i) != 32) {
-//                    value.append(data.charAt(i));
-//                } else {
-//
-//                    temp += "Route: " + value.toString().replace("%20", "") + "\n";
-//
-//                    this.setRoute(value.toString().replace("%20", ""));
-//                    value.setLength(0);
-//                    route = true;
-//                }
-//            } else if (!versionHttp) {
-//                if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
-//                    value.append(data.charAt(i));
-//                } else {
-//
-//                    temp += "HTTP/VERSION: " + value.toString().replace("\n\r", "") + "\n";
-//
-//                    this.setHttpVersion(value.toString().replace("\n\r", ""));
-//                    value.setLength(0);
-//                    versionHttp = true;
-//                }
-//            } else {
-//                if (!mode) {
-//                    if (data.charAt(i) != 58) {
-//                        key.append(data.charAt(i));
-//                    } else {
-//                        mode = !mode;
-//                    }
-//                } else {
-//                    if (data.charAt(i) != 13 && data.charAt(i + 1) != 10) {
-//                        value.append(data.charAt(i));
-//                    } else {
-//
-//                        temp += key.toString().replace("\n", "").replace("\r", "") + 
-//                                ":" +
-//                                value.toString().replace(" ", "") + "\n";
-//
-//                        this.addReqHeader(key.toString().replace("\n", "").replace("\r", ""),
-//                                value.toString().replace(" ", ""));
-//                        key.setLength(0);
-//                        value.setLength(0);
-//                        mode = !mode;
-//                    }
-//                }
-//            }
         }
-        //System.out.println("\n\nData decoded\n" + temp);
-    }*/
+        return param;
+    }
+
+    private void setHttpVersion() {
+        try {
+            String version = this.httpInfoLine.substring(this.httpInfoLine.lastIndexOf(32));
+            this.httpVersion = version.trim();
+        } catch (Exception e) {
+            this.httpStatus = 400;
+            this.httpVersion = null;
+        }
+    }
     // </editor-fold>
+    // </editor-fold>
+
+    // <editor-fold desc="Body">
+    private void setHttpBody() {
+        this.httpBody = this.httpBodyString;
+        if (this.routeType) {
+            HashMap<String, String> params = this.setParams(this.httpBody);
+            this.httpParams = params;
+        }
+    }
+    // </editor-fold>
+
+    // <editor-fold desc="Getter">
+    public String getHttpData() {
+        return httpData;
+    }
+
+    public int getHttpStatus() {
+        return httpStatus;
+    }
+
+    public String getHttpMethod() {
+        return httpMethod;
+    }
+
+    public String getHttpRoute() {
+        return httpRoute;
+    }
+
+    public HashMap<String, String> getHttpParams() {
+        return httpParams;
+    }
+
+    public String getHttpVersion() {
+        return httpVersion;
+    }
+
+    public HashMap<String, String> getHttpHeaders() {
+        return httpHeaders;
+    }
+
+    public String getHttpBody() {
+        return httpBody;
+    }
+    // </editor-fold>
+
 }
