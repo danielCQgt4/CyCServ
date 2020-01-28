@@ -2,16 +2,15 @@ package com.Utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
-public final class Req extends HttpIdentifiers {
-
-    private static final Logger LOGGER = Logger.getLogger("com.Utils");
+public final class Req extends HttpIdentifiers implements CyCServRequest {
 
     public Req(Socket socket) throws IOException {
-        super(socket);
+        super(socket, true);
         this.decodeRequest();
     }
 
@@ -38,21 +37,80 @@ public final class Req extends HttpIdentifiers {
 
     public void decodeRequest() {
         String data = getData();
-//        System.out.println(data + "\n\n\n");
         HttpParser httpParser = new HttpParser(data);
         this.setDataRequest(data);
         this.setHttpVersion(httpParser.getHttpVersion());
         this.setMethod(httpParser.getHttpMethod());
         this.setParams(httpParser.getHttpParams());
-        this.setReqHeaders(httpParser.getHttpHeaders());
+        this.setHeaders(httpParser.getHttpHeaders());
         this.setRoute(httpParser.getHttpRoute());
         this.setSatatus(httpParser.getHttpStatus());
-//        System.out.println("Metodo:" + httpParser.getHttpMethod());
-//        System.out.println("Route:" + httpParser.getHttpRoute());
-//        System.out.println("Http\\v:" + httpParser.getHttpVersion());
-//        System.out.println("Status:" + httpParser.getHttpStatus());
-//        httpParser.getHttpHeaders().forEach((k, v) -> System.err.println(k + " k:v " + v));
-//        httpParser.getHttpParams().forEach((k, v) -> System.err.println(k + ":" + v));
     }
 
+    // <editor-fold desc="Getter and Setters">
+    @Override
+    public String getDataRequest() {
+        return super.dataRequest;
+    }
+
+    @Override
+    public void setDataRequest(String data) {
+        super.dataRequest = data;
+    }
+
+    @Override
+    public InputStream getInputStream() {
+        return super.inputStream;
+    }
+
+    @Override
+    public String getMethod() {
+        return super.method;
+    }
+
+    @Override
+    public void setMethod(String method) {
+        super.method = method;
+    }
+
+    @Override
+    public String getRoute() {
+        return super.route;
+    }
+
+    @Override
+    public void setRoute(String route) {
+        super.route = route;
+    }
+
+    @Override
+    public String getHttpVersion() {
+        return super.httpVersion;
+    }
+
+    @Override
+    public void setHttpVersion(String httpVersion) {
+        super.httpVersion = httpVersion;
+    }
+
+    @Override
+    public String addParam(String key, String value) {
+        return super.params.put(key, value);
+    }
+
+    @Override
+    public String getParam(String key) {
+        return super.params.get(key);
+    }
+
+    @Override
+    public HashMap<String, String> getParams() {
+        return super.params;
+    }
+
+    @Override
+    public void setParams(HashMap<String, String> params) {
+        super.params = params;
+    }
+    // </editor-fold>
 }

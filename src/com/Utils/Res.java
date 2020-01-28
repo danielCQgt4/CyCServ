@@ -1,117 +1,143 @@
 package com.Utils;
 
-import com.Server.CyCServ;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.Socket;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
-public class Res {
-
-    //TODO handle and make fix for header(Works already)
-    // <editor-fold desc="Properties">
-    private static final Logger LOGGER = Logger.getLogger("com.Utils");
-    private final CyCServ cyCServ = CyCServ.newInstance();
-    private final String CRLF;
-    private final String HTTP_VERSION;
-    private final String RESPONSE_CODE;
-    private final String RESPONSE_MESSAGE;
-    private String CONTENT_LENGHT;
-    private String CONTENT_TYPE;
-    private String ACCESS_CONTROL_ALLOW_ORIGIN;
-    private final OutputStream outpuStream;
-    // </editor-fold>
-
-    // <editor-fold desc="Getters and Setters">
-    public OutputStream getOutputStream() {
-        return this.outpuStream;
-    }
-
-    public String getCRLF() {
-        return CRLF;
-    }
-
-    public String getHTTP_VERSION() {
-        return HTTP_VERSION;
-    }
-
-    public String getRESPONSE_CODE() {
-        return RESPONSE_CODE;
-    }
-
-    public String getRESPONSE_MESSAGE() {
-        return RESPONSE_MESSAGE;
-    }
-
-    public String getCONTENT_LENGHT(String content) {
-        this.CONTENT_LENGHT = "content-length: " + content.length();
-        return CONTENT_LENGHT;
-    }
-
-    public String getCONTENT_LENGHT() {
-        return CONTENT_LENGHT;
-    }
-
-    public String getCONTENT_TYPE() {
-        return CONTENT_TYPE;
-    }
-
-    public String getCONTENT_TYPE(String contentType) {
-        this.CONTENT_TYPE = contentType;
-        return CONTENT_TYPE;
-    }
-
-    public String getACCESS_CONTROL_ALLOW_ORIGIN() {
-        return ACCESS_CONTROL_ALLOW_ORIGIN;
-    }
-
-    public void setACCESS_CONTROL_ALLOW_ORIGIN(String ACCESS_CONTROL_ALLOW) {
-        this.ACCESS_CONTROL_ALLOW_ORIGIN = ACCESS_CONTROL_ALLOW;
-    }
-    // </editor-fold>
+public class Res extends HttpIdentifiers implements CyCServResponse {
 
     // <editor-fold desc="Constructor">
-    public Res(OutputStream outputStream) {
-        this.outpuStream = outputStream;
-        this.CRLF = "\n\r";
-        this.HTTP_VERSION = "HTTP/1.1";
-        this.RESPONSE_CODE = "200";
-        this.RESPONSE_MESSAGE = "OK";
-        this.CONTENT_TYPE = "content-type: text/html";
-        this.CONTENT_LENGHT = "content-length: 0";
-        //this.ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin: " + this.cyCServ.getHost(); TODO UNCOMMENT
-        this.ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin: *"; // TODO DELETE
+    public Res(Socket socket) throws IOException {
+        super(socket, false);
     }
-    // <editor-fold>
+    // </editor-fold>
 
     // <editor-fold desc="Actions">
-    public String send(String bodyRes) {
+    private String composeHttpResponse(String body) {
         StringBuilder stringBuilder = new StringBuilder();
-        try {
-            stringBuilder.append(this.getHTTP_VERSION()).append(" ");
-            stringBuilder.append(this.getRESPONSE_CODE()).append(" ");
-            stringBuilder.append(this.getRESPONSE_MESSAGE()).append(" ");
-            stringBuilder.append(this.getCRLF());
-            //Headers
-            stringBuilder.append(" ").append("\n");
-            stringBuilder.append(this.getCONTENT_LENGHT(bodyRes)).append("\n");
-            stringBuilder.append(this.getCONTENT_TYPE()).append("\n");
-            stringBuilder.append(this.getACCESS_CONTROL_ALLOW_ORIGIN()).append("\n");
-            stringBuilder.append(this.getCRLF());
-            stringBuilder.append(this.getCRLF());
-            //Body
-            stringBuilder.append(bodyRes);
-            stringBuilder.append(this.getCRLF());
-            stringBuilder.append(this.getCRLF());
-            this.outpuStream.write(stringBuilder.toString().getBytes());
-        } catch (IOException e) {
-            LOGGER.log(Level.INFO, "Error while sending response {0}", e);
-        }
+        stringBuilder.append(this.getHTTP_VERSION()).append(" ");
+        stringBuilder.append(this.getRESPONSE_CODE()).append(" ");
+        stringBuilder.append(this.getRESPONSE_MESSAGE()).append(" ");
+        stringBuilder.append(this.getCRLF());
+        //Headers
+        stringBuilder.append(" ").append("\n");
+        stringBuilder.append(this.getCONTENT_LENGHT(body)).append("\n");
+        stringBuilder.append(this.getCONTENT_TYPE()).append("\n");
+        stringBuilder.append(this.getACCESS_CONTROL_ALLOW_ORIGIN()).append("\n\r\n");
+        //stringBuilder.append(this.getCRLF()).append(this.getCRLF());
+        //stringBuilder.append(this.getCRLF());
+        //Body
+        stringBuilder.append(body);
+        stringBuilder.append(this.getCRLF());
+        stringBuilder.append(this.getCRLF());
         return stringBuilder.toString();
     }
 
-    public void close() throws IOException {
-        this.outpuStream.close();
+    public String send(String bodyRes) {
+        String respose = composeHttpResponse(bodyRes);
+        try {
+            this.getOutputStream().write(respose.getBytes());
+        } catch (IOException e) {
+            LOGGER.log(Level.INFO, "Error while sending response {0}", e);
+        }
+        return respose;
     }
+
+    public String sendText(String text) {
+        this.setCONTENT_TYPE("text/plain");
+        String respose = composeHttpResponse(text);
+        try {
+            this.getOutputStream().write(respose.getBytes());
+        } catch (IOException e) {
+            LOGGER.log(Level.INFO, "Error while sending response {0}", e);
+        }
+        return respose;
+    }
+
+    public String sendJson(String json) {
+        this.setCONTENT_TYPE("application/json");
+        String respose = composeHttpResponse(json);
+        try {
+            this.getOutputStream().write(respose.getBytes());
+        } catch (IOException e) {
+            LOGGER.log(Level.INFO, "Error while sending response {0}", e);
+        }
+        return respose;
+    }
+
+    public void close() throws IOException {
+        this.getOutputStream().close();
+    }
+    // </editor-fold>
+
+    // <editor-fold desc="Getter and Setters">
+    @Override
+    public OutputStream getOutputStream() {
+        return super.outpuStream;
+    }
+
+    @Override
+    public String getCRLF() {
+        return super.CRLF;
+    }
+
+    @Override
+    public String getHTTP_VERSION() {
+        return super.HTTP_VERSION;
+    }
+
+    @Override
+    public String getRESPONSE_CODE() {
+        return super.RESPONSE_CODE;
+    }
+
+    @Override
+    public String getRESPONSE_MESSAGE() {
+        return super.RESPONSE_MESSAGE;
+    }
+
+    @Override
+    public String getCONTENT_LENGHT() {
+        return super.CONTENT_LENGHT;
+    }
+
+    @Override
+    public String getCONTENT_TYPE() {
+        return super.CONTENT_TYPE;
+    }
+
+    @Override
+    public String getACCESS_CONTROL_ALLOW_ORIGIN() {
+        return super.ACCESS_CONTROL_ALLOW_ORIGIN;
+    }
+
+    @Override
+    public String setCONTENT_LENGHT(String content) {
+        content = content.toLowerCase();
+        content = content.replace("content-length:", "");
+        super.CONTENT_LENGHT = "content-length: " + content.length();
+        return super.CONTENT_LENGHT;
+    }
+
+    @Override
+    public void setCONTENT_TYPE(String contentType) {
+        contentType = contentType.toLowerCase();
+        contentType = contentType.replace("content-type:", "");
+        super.CONTENT_TYPE = "content-type: " + contentType;
+    }
+
+    @Override
+    public void setACCESS_CONTROL_ALLOW_ORIGIN(String url) {
+        url = url.toLowerCase();
+        url = url.replace("access-control-allow-origin:", "");
+        super.ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin: " + url;
+    }
+
+    @Override
+    public void setRESPONSE_CODE(int code) {
+        super.RESPONSE_CODE = String.valueOf(code);
+    }
+
     // </editor-fold>
 }

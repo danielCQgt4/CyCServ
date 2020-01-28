@@ -22,7 +22,8 @@ public class ClientCore implements Runnable {
     public void run() {
         try {
             this.request = new Req(socket);
-            this.respose = new Res(socket.getOutputStream());
+            this.respose = new Res(socket);
+            this.respose.setRESPONSE_CODE(200);//Parse to int
             String bodyRes = "<!DOCTYPE html>"
                     + "<html>"
                     + "    <head>"
@@ -34,7 +35,9 @@ public class ClientCore implements Runnable {
                     + "        <h1>HelloWorld</h1>"
                     + "    </body>"
                     + "</html>";
+            respose.sendJson("{\"key\":\"value\"}");
             respose.send(bodyRes);
+            respose.sendText("Hola mundo");
         } catch (IOException e) {
             LOGGER.log(Level.INFO, "The process during the communication FAIL {0}", e);
         } finally {
