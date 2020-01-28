@@ -1,11 +1,15 @@
 package com.Utils;
 
+import com.Helpers.CyCServResponse;
+import com.Helpers.HttpIdentifiers;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.logging.Level;
 
 public class Res extends HttpIdentifiers implements CyCServResponse {
+
+    private String httpContent;
 
     // <editor-fold desc="Constructor">
     public Res(Socket socket) throws IOException {
@@ -14,6 +18,15 @@ public class Res extends HttpIdentifiers implements CyCServResponse {
     // </editor-fold>
 
     // <editor-fold desc="Actions">
+    public void sendHttpResponse(String httpResponse) {
+        String respose = httpResponse;
+        try {
+            this.getOutputStream().write(respose.getBytes());
+        } catch (IOException e) {
+            //LOGGER.log(Level.INFO, "Error while sending response {0}", e);
+        }
+    }
+
     private String composeHttpResponse(String body) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(this.getHTTP_VERSION()).append(" ");
@@ -24,8 +37,6 @@ public class Res extends HttpIdentifiers implements CyCServResponse {
         stringBuilder.append(" ").append("\n");
         this.setCONTENT_LENGHT(body);
         super.addHeader(this.getCONTENT_TYPE());
-//        this.setCONTENT_TYPE();
-//        stringBuilder.append().append("\n");
         this.getHeaders().forEach((k, v)
                 -> stringBuilder.append(k)
                         .append(": ")
@@ -37,6 +48,8 @@ public class Res extends HttpIdentifiers implements CyCServResponse {
         stringBuilder.append(body);
         stringBuilder.append(this.getCRLF());
         stringBuilder.append(this.getCRLF());
+        //System.out.println(stringBuilder.toString());
+        this.httpContent = stringBuilder.toString();
         return stringBuilder.toString();
     }
 
@@ -78,6 +91,10 @@ public class Res extends HttpIdentifiers implements CyCServResponse {
     // </editor-fold>
 
     // <editor-fold desc="Getter and Setters">
+    public String getLasResponse(){
+        return this.httpContent;
+    }
+    
     @Override
     public OutputStream getOutputStream() {
         return super.outpuStream;
@@ -113,7 +130,7 @@ public class Res extends HttpIdentifiers implements CyCServResponse {
         return super.ACCESS_CONTROL_ALLOW_ORIGIN;
     }
 
-//    @Override
+    @Override
     public void setCONTENT_LENGHT(String content) {
         content = content.toLowerCase();
         content = content.replace("content-length:", "");

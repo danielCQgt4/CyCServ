@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Bad request</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+    <div class="div-control">
+        <div class="info">
+            <div class="info-img">
+                <h2 class="err"> <strong style="color: red;">Error: 400</strong></h2>
+            </div>
+            <p class="info-head">An unexpected error occurred on the server.</p>
+            <p class="info-sol">Try again, <strong>loading</strong> the page or <strong>go back</strong> and contact support.</p>
+        </div>
+    </div>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+
+        .div-control {
+            width: 100%;
+            height: 100%;
+            overflow-y: unset;
+        }
+
+        .info {
+            width: 100%;
+            margin: 0 auto;
+            height: auto;
+        }
+
+        .err {
+            width: 100%;
+            position: absolute;
+            bottom: -25%;
+            left: 50%;
+            right: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            font-size: 2.8em;
+        }
+
+        .info-img {
+            position: relative;
+            margin: 5em auto;
+            width: 15em;
+            height: 15em;
+            background-position: center;
+            background: url(https://pixy.org/src/10/100828.png) no-repeat;
+            background-size: contain;
+            background-attachment: scroll;
+        }
+
+        .info-head,
+        .info-sol {
+            color: #444;
+            font-size: 1.5em;
+            font-family: monospace;
+            text-align: center;
+        }
+    </style>
+</body>
+
+</html>

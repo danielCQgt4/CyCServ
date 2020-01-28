@@ -5,6 +5,11 @@ import java.net.ServerSocket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.Handlers.CyCRouter;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.Socket;
+import java.util.stream.Collectors;
 
 public class CyCServ {
 
@@ -15,6 +20,9 @@ public class CyCServ {
     private String host;
     private int port;
     private CyCRouter router;
+    private String viewPath;
+    private String error404 = "./com/StaticContent/404.html";
+    private String error400 = "./com/StaticContent/400.html";
     // </editor-fold>
 
     // <editor-fold desc="Constructors">
@@ -49,13 +57,41 @@ public class CyCServ {
     public void setServerSocket(ServerSocket _serverSocket) {
         serverSocket = _serverSocket;
     }
-    
-    public CyCRouter getRouter(){
+
+    public CyCRouter getRouter() {
         return this.router;
     }
-    
-    public void setRouter(CyCRouter router){
+
+    public void setRouter(CyCRouter router) {
         this.router = router;
+    }
+
+    public String getRemoteAddress(Socket socket) {
+        return socket.getInetAddress().toString();
+    }
+
+    public String getViewPath() {
+        return viewPath;
+    }
+
+    public void setViewPath(String viewPath) {
+        this.viewPath = viewPath;
+    }
+
+    public String getError404() {
+        return error404;
+    }
+
+    public void setError404(String error404) {
+        this.error404 = error404;
+    }
+
+    public String getError400() {
+        return error400;
+    }
+
+    public void setError400(String error400) {
+        this.error400 = error400;
     }
     // </editor-fold>
 
@@ -80,6 +116,14 @@ public class CyCServ {
     public void listen(int port) {
         this.port = port;
         this.listen();
+    }
+
+    public String readFile(String path) {
+        InputStream in = this.getClass().getClassLoader()
+                .getResourceAsStream(path);
+        String s = new BufferedReader(new InputStreamReader(in))
+                .lines().collect(Collectors.joining("\n"));
+        return s;
     }
     // </editor-fold>
 
