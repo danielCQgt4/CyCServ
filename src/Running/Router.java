@@ -9,7 +9,7 @@ public class Router extends CyCRouter {
     @Override
     public void routing() {
         get("/");
-        get("/img");
+        get("/favicon.ico");
     }
 
     @Override
@@ -17,10 +17,19 @@ public class Router extends CyCRouter {
         switch (route) {
             case "/":
                 String param = request.getParam("key");
-                response.send("<h1>hola " + param + "</h1>");
+                final String list = request.getDataRequest();
+                response.send("<html>\n"
+                        + "  <head>\n"
+                        + "    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n"
+                        + "  </head>\n"
+                        + "  <body>\n"
+                        + list
+                        + "<hr>"
+                        + "  </body>\n"
+                        + "</html>");
                 break;
-            case "/img":
-                response.sendFile("C:\\Users\\danie\\Desktop\\images2.jpg");
+            case "/favicon.ico":
+                response.sendFile("D:\\Universidad\\I cuatri 2020\\Progra Avanzada\\Sylom\\Resources\\Images\\favicon.ico");
                 break;
         }
     }

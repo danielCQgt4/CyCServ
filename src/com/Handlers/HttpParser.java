@@ -43,7 +43,8 @@ public final class HttpParser {
 
     private String setHttpHeaders(String data) {
         try {
-            return data.substring(data.indexOf("\n") + 1, data.indexOf("\n\r"));
+            String headers = data.substring(data.indexOf("\n") + 1, data.indexOf("\n\r"));
+            return headers;
         } catch (Exception e) {
             this.httpStatus = 400;
             return null;
@@ -52,7 +53,8 @@ public final class HttpParser {
 
     private String setHttpBody(String data) {
         try {
-            return data.substring(data.indexOf("\n\r") + 3);
+            String body = data.substring(data.indexOf("\n\r") + 3);
+            return body;
         } catch (Exception e) {
             this.httpStatus = 400;
             return null;

@@ -49,9 +49,14 @@ public final class Req extends HttpIdentifiers implements CyCServRequest {
             this.setHeaders(httpParser.getHttpHeaders());
             this.setRoute(httpParser.getHttpRoute());
             this.setRESPONSE_CODE(httpParser.getHttpStatus());
+            System.out.println("\n\n\n" + data + (data.equals("") || data.isEmpty()) + " --> " + this.getRoute());
         }
-        if (this.getRESPONSE_CODE() == 0){
-            this.setRESPONSE_CODE(400);
+        if (this.getRESPONSE_CODE() == 0) {
+            if (data.equals("") || data.isEmpty()) {
+                this.setRESPONSE_CODE(200);
+            } else {
+                this.setRESPONSE_CODE(400);
+            }
         }
         //System.out.println("Code: " + this.getRESPONSE_CODE());
     }

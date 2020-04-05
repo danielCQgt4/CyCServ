@@ -4,7 +4,6 @@ import com.Utils.Req;
 import com.Utils.Res;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,7 +13,6 @@ public class ClientCore implements Runnable {
     private final Socket socket;
     private Res respose;
     private Req request;
-    private String idClient;
     private final CyCServ cyCServ = CyCServ.newInstance();
 
     public ClientCore(Socket socket) {
@@ -24,18 +22,15 @@ public class ClientCore implements Runnable {
     @Override
     public void run() {
         try {
-            this.idClient = cyCServ.getRemoteAddress(this.socket);
             this.request = new Req(socket);
             this.respose = new Res(socket);
             this.respose.setRESPONSE_CODE(this.request.getRESPONSE_CODE());
             this.respose.setACCESS_CONTROL_ALLOW_ORIGIN("*"); //TODO Delete line
+            if (this.respose.getRESPONSE_CODE() == 0) {
+                this.respose.setRESPONSE_CODE(400);
+            }
             if (this.respose.getRESPONSE_CODE() == 400) {
-                String last = Connections.getLastReq(idClient);
-                if (last != null) {
-                    this.respose.sendHttpResponse(last);
-                } else {
-                    this.badRequest();
-                }
+                this.badRequest();
             } else {
                 if (cyCServ.getRouter() != null) {
                     cyCServ.getRouter().middleWares(
@@ -57,7 +52,6 @@ public class ClientCore implements Runnable {
                 } else {
                     this.notFound();
                 }
-                Connections.addConnection(idClient, this.respose.getLasResponse());
             }
         } catch (IOException e) {
             LOGGER.log(Level.INFO, "The process during the communication FAIL {0}", e);
@@ -65,16 +59,17 @@ public class ClientCore implements Runnable {
             try {
                 this.request.getInputStream().close();
             } catch (IOException | NullPointerException ex) {
+                System.out.println(ex);
             }
             try {
                 this.respose.getOutputStream().close();
             } catch (IOException | NullPointerException ex) {
+                System.out.println(ex);
             }
             try {
-                if (this.socket.isConnected()) {
-                    this.socket.close();
-                }
+                this.socket.close();
             } catch (IOException ex) {
+                System.out.println(ex);
             }
         }
     }
@@ -91,20 +86,4 @@ public class ClientCore implements Runnable {
         respose.send(body);
     }
 
-    private static class Connections {
-
-        private final static HashMap<String, String> CONNECTIONS = new HashMap<>();
-
-        public static void addConnection(String idClient, String lastReq) {
-            CONNECTIONS.put(idClient, lastReq);
-        }
-
-        public static String getLastReq(String idClient) {
-            String lastReq = CONNECTIONS.get(idClient);
-            if (lastReq != null) {
-                return lastReq;
-            }
-            return null;
-        }
-    }
 }
