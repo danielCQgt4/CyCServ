@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.logging.Level;
@@ -17,7 +16,7 @@ import java.util.logging.Logger;
 public class Res extends HttpIdentifiers implements CyCServResponse {
 
     private String httpContent;
-    private final CyCServ cyCServ = CyCServ.newInstance();
+    private CyCServ cyCServ;
 
     // <editor-fold desc="Constructor">
     public Res(Socket socket) throws IOException {
@@ -118,6 +117,10 @@ public class Res extends HttpIdentifiers implements CyCServResponse {
     // </editor-fold>
 
     // <editor-fold desc="Getter and Setters">
+    public void setCyCServ(CyCServ cyCServ) {
+        this.cyCServ = cyCServ;
+    }
+
     public String getLasResponse() {
         return this.httpContent;
     }

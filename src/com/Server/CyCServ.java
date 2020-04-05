@@ -16,8 +16,7 @@ public class CyCServ {
 
     // <editor-fold desc="Properties">
     private static final Logger LOGGER = Logger.getLogger("com.Server");
-    private static ServerSocket serverSocket;
-    private static CyCServ cyCServ;
+    private ServerSocket serverSocket;
     private String host;
     private int port;
     private CyCRouter router;
@@ -28,7 +27,7 @@ public class CyCServ {
     // </editor-fold>
 
     // <editor-fold desc="Constructors">
-    private CyCServ() {
+    public CyCServ() {
         serverSocket = null;
         this.port = 80;
         // TODO handle the others properties
@@ -48,28 +47,12 @@ public class CyCServ {
         this.port = port;
     }
 
-    public CyCServ getCyCServ() {
-        return cyCServ;
-    }
-
-    public ServerSocket getServerSocket() {
-        return serverSocket;
-    }
-
-    public void setServerSocket(ServerSocket _serverSocket) {
-        serverSocket = _serverSocket;
-    }
-
     public CyCRouter getRouter() {
         return this.router;
     }
 
     public void setRouter(CyCRouter router) {
         this.router = router;
-    }
-
-    public String getRemoteAddress(Socket socket) {
-        return socket.getInetAddress().toString();
     }
 
     public String getViewPath() {
@@ -106,12 +89,11 @@ public class CyCServ {
         try {
             serverSocket = new ServerSocket(this.getPort());
             this.host = serverSocket.getInetAddress() + ":" + this.port;
-            Thread runCore = new Thread(new Core(this));
+            Thread runCore = new Thread(new Core(this, serverSocket));
             runCore.start();
             StringBuilder msj = new StringBuilder("The server is running on port ");
-            msj.append(this.getPort())
-                    .append("\nAnd waiting for connections ...");
-            LOGGER.log(Level.INFO, msj.toString());
+            msj.append(this.getPort()).append("\nAnd waiting for connections ...");
+            System.out.println(msj.toString());
         } catch (IllegalArgumentException e) {
             LOGGER.log(Level.SEVERE, "The port {0} is not valid ", this.getPort());
         } catch (IOException e) {
@@ -125,20 +107,9 @@ public class CyCServ {
     }
 
     public String readFile(String path) {
-        InputStream in = this.getClass().getClassLoader()
-                .getResourceAsStream(path);
-        String s = new BufferedReader(new InputStreamReader(in))
-                .lines().collect(Collectors.joining("\n"));
+        InputStream in = this.getClass().getClassLoader().getResourceAsStream(path);
+        String s = new BufferedReader(new InputStreamReader(in)).lines().collect(Collectors.joining("\n"));
         return s;
-    }
-    // </editor-fold>
-
-    // <editor-fold desc="Settings">
-    public static CyCServ newInstance() {
-        if (cyCServ == null) {
-            cyCServ = new CyCServ();
-        }
-        return cyCServ;
     }
     // </editor-fold>
 }

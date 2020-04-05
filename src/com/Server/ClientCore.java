@@ -13,9 +13,10 @@ public class ClientCore implements Runnable {
     private final Socket socket;
     private Res respose;
     private Req request;
-    private final CyCServ cyCServ = CyCServ.newInstance();
+    private final CyCServ cyCServ;
 
-    public ClientCore(Socket socket) {
+    public ClientCore(CyCServ cyCServ1, Socket socket) {
+        this.cyCServ = cyCServ1;
         this.socket = socket;
     }
 
@@ -33,10 +34,7 @@ public class ClientCore implements Runnable {
                 this.badRequest();
             } else {
                 if (cyCServ.getRouter() != null) {
-                    cyCServ.getRouter().middleWares(
-                            this.request,
-                            this.respose
-                    );
+                    cyCServ.getRouter().middleWares(this.request, this.respose);
                     cyCServ.getRouter().routing();
                     if (cyCServ.getRouter().validRoute(this.request.getRoute(), this.request.getMethod())) {
                         this.respose.setRESPONSE_CODE(200);

@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 public class Main {
 
     public static void main(String[] args) {
-        CyCServ cyCServ = CyCServ.newInstance();
+        CyCServ cyCServ = new CyCServ();
         cyCServ.setRouter(new Router());
         cyCServ.listen();
     }

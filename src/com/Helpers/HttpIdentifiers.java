@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 public class HttpIdentifiers {
 
     // <editor-fold desc="General">
-    private final CyCServ cyCServ = CyCServ.newInstance();
+    private CyCServ cyCServ;
     private static final String[][] HTTPREPLIES = {
         {"100", "Continue"},
         {"101", "Switching Protocols"},
@@ -135,6 +135,16 @@ public class HttpIdentifiers {
     public int getRESPONSE_CODE() {
         return this.RESPONSE_CODE;
     }
+    
+    
     // </editor-fold>
+
+    public CyCServ getCyCServ() {
+        return cyCServ;
+    }
+
+    public void setCyCServ(CyCServ cyCServ) {
+        this.cyCServ = cyCServ;
+    }
 
 }
