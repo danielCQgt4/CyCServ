@@ -2,7 +2,6 @@ package com.Server;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.Handlers.CyCRouter;
 import com.Handlers.FileHandler;
@@ -18,7 +17,6 @@ public final class CyCServ {
     private final HashMap<Integer, String> errors;
     private final FileHandler fileHandler;
     private ServerSocket serverSocket;
-    private static Logger LOGGER;
     private final int MAX_PORT;
     private final int MIN_PORT;
     private CyCRouter router;
@@ -29,14 +27,13 @@ public final class CyCServ {
 
     // <editor-fold desc="Constructors">
     public CyCServ() {
-        this.serverSocket = null;
-        this.port = 80;
-        this.errors = new HashMap<>();
         this.fileHandler = FileHandler.newInstance();
-        CyCServ.LOGGER = Logger.getLogger("com.Server");
-        this.setDefaultErrors();
+        this.errors = new HashMap<>();
+        this.serverSocket = null;
         this.MAX_PORT = 65535;
         this.MIN_PORT = 1;
+        this.port = 80;
+        this.setDefaultErrors();
     }
 
     private void setDefaultErrors() {

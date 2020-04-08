@@ -9,9 +9,12 @@ import java.util.stream.Collectors;
 public class Main {
 
     public static void main(String[] args) {
-        CyCServ cyCServ = new CyCServ();
-        cyCServ.setRouter(new Router());
-        cyCServ.listen(3000);
+        try {
+            CyCServ cyCServ = new CyCServ();
+            cyCServ.setRouter(new Router());
+            cyCServ.listen(3000);
+        } catch (Exception e) {
+        }
     }
 
     public static class Temp {

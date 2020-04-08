@@ -13,8 +13,8 @@ public class Core implements Runnable {
     private final ServerSocket serverSocket;
     private Socket socket;
 
-    public Core(CyCServ cyCServ1, ServerSocket serverSocket) {
-        this.cyCServ = cyCServ1;
+    public Core(CyCServ cyCServ, ServerSocket serverSocket) {
+        this.cyCServ = cyCServ;
         this.serverSocket = serverSocket;
     }
 

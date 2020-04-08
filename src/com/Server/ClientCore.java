@@ -77,13 +77,13 @@ public class ClientCore implements Runnable {
 
     private void badRequest() throws IOException {
         this.respose.setRESPONSE_CODE(400);
-        String body = cyCServ.readFile(cyCServ.getError400());
+        String body = cyCServ.readFile(cyCServ.getError(400));
         respose.send(body);
     }
 
     private void notFound() throws IOException {
         this.respose.setRESPONSE_CODE(404);
-        String body = cyCServ.readFile(cyCServ.getError404());
+        String body = cyCServ.readFile(cyCServ.getError(404));
         respose.send(body);
     }
 
