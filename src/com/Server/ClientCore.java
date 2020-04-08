@@ -31,7 +31,7 @@ public class ClientCore implements Runnable {
     public void run() {
         try {
             this.request = new Req(socket);
-            
+            //TODO Continue
         } catch (IOException e) {
             LOGGER.log(Level.INFO, "The process during the communication FAIL {0}", e);
         } finally {
