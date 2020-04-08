@@ -16,7 +16,7 @@ public final class HttpParser {
     private String route;
     private String httpVersion;
     /* **** Request headers **** */
-    private HashMap<String, String> headers;
+    private final HashMap<String, String> headers;
     /* **** Request body **** */
     private String body;
     // </editor-fold>
@@ -28,6 +28,9 @@ public final class HttpParser {
         this.initRequest();
         /* *** Decode request line *** */
         this.initRequestLine();
+        /* *** Decode request headers *** */
+        this.headers = new HashMap<>();
+        this.initRequestHeaders();
     }
     // </editor-fold>
 
@@ -59,7 +62,10 @@ public final class HttpParser {
     public String getHttpVersion() {
         return httpVersion;
     }
-    
+
+    public HashMap<String, String> getHeaders() {
+        return headers;
+    }
     // </editor-fold>
 
     // <editor-fold desc="Init">
@@ -79,7 +85,6 @@ public final class HttpParser {
             this.validRequest = false;
         }
     }
-    // </editor-fold>
 
     private void initRequestLine() {
         if (this.validRequest) {
@@ -88,8 +93,8 @@ public final class HttpParser {
                 if (!this.requestLine.isEmpty()) {
                     String[] components = calcReq.split(" ");
                     if (components.length == 3) {
-                        this.method = components[0];
-                        this.route = components[1];
+                        this.method = components[0].toLowerCase();
+                        this.route = components[1].toLowerCase();
                         this.httpVersion = components[2].toLowerCase();
                         if (!this.httpVersion.equals("http/1.1")) {
                             this.validRequest = false;
@@ -100,6 +105,31 @@ public final class HttpParser {
                 } else {
                     this.validRequest = false;
                 }
+            } catch (Exception e) {
+                this.validRequest = false;
+            }
+        }
+    }
+    // </editor-fold>
+
+    private void initRequestHeaders() {
+        if (this.validRequest) {
+            try {
+                String calcReq = this.requestHeaders;
+                String[] headerKeyValue = calcReq.split("\r\n");
+                for (String headLine : headerKeyValue) {
+                    String[] headLineKeyValue = headLine.split(":", 2);
+                    if (headLineKeyValue.length == 2) {
+                        this.headers.put(
+                                headLineKeyValue[0].trim().toLowerCase(),//Key
+                                headLineKeyValue[1].trim().toLowerCase()//Value
+                        );
+                    } else {
+                        this.validRequest = false;
+                        break;
+                    }
+                }
+                String temp = "break";
             } catch (Exception e) {
                 this.validRequest = false;
             }

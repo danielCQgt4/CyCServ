@@ -51,18 +51,30 @@ public final class Req {
             //full
             temp = "Full-Full-Full-Full-Full \n" + this.completeRequest + "\n\n\n";
 
+            temp += "-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
             //line
-            temp += "Line-Line-Line-Line-Line\n" + parser.getRequestLine() + "\n";
+            temp += "Line-Line-Line-Line-Line\n" + parser.getRequestLine() + "\n\n";
             temp += "   Method: " + parser.getMethod() + "\n";
-            temp += "   Route: " + parser.getRoute()+ "\n";
-            temp += "   Version: " + parser.getHttpVersion()+ "\n\n\n";
+            temp += "   Route: " + parser.getRoute() + "\n";
+            temp += "   Version: " + parser.getHttpVersion() + "\n\n\n";
 
+            temp += "-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
             //headers
             temp += "Headers-Headers-Headers-Headers-Headers\n" + parser.getRequestHeaders()
-                    .replace("\n", "@\n").replace("\r", "#") + "\n\n\n";
+                    .replace("\n", "@\n").replace("\r", "#") + "\n\n";
 
+            final StringBuilder heads = new StringBuilder();
+
+            parser.getHeaders().forEach((k, v) -> {
+                heads.append("  ").append(k).append(" -:- ").append(v).append("\n");
+            });
+            temp += heads.toString() + "\n\n\n";
+
+            temp += "-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
             //body
             temp += "Body-Body-Body-Body-Body\n" + parser.getRequestBody();
+        } else {
+            temp = "No data";
         }
 
         out.write(temp.getBytes());
