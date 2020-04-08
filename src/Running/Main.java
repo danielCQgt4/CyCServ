@@ -11,9 +11,13 @@ public class Main {
     public static void main(String[] args) {
         try {
             CyCServ cyCServ = new CyCServ();
-            cyCServ.setRouter(new Router());
-            cyCServ.listen(3000);
+//            cyCServ.setRouter(new Router());
+            CyCServ.CyCServResult r = cyCServ.listen(3000);
+            if (!r.isStarted()) {
+                System.out.println(r.getError());
+            }
         } catch (Exception e) {
+            System.out.println(e);
         }
     }
 
