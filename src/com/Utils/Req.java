@@ -45,11 +45,25 @@ public final class Req {
 
     private void decodeRequest() throws IOException {
         HttpParser parser = new HttpParser(this.completeRequest);
+        String temp = "";
 
-        String temp = "Full-Full-Full-Full-Full \n" + this.completeRequest + "\n\n\n"; 
-        temp += "Line-Line-Line-Line-Line\n" + parser.getRequestLine() + "\n\n\n";
-        temp += "Headers-Headers-Headers-Headers-Headers\n" + parser.getRequestHeaders() + "\n\n\n";
-        temp += "Body-Body-Body-Body-Body\n" + parser.getRequestBody();
+        if (parser.isValidRequest()) {
+            //full
+            temp = "Full-Full-Full-Full-Full \n" + this.completeRequest + "\n\n\n";
+
+            //line
+            temp += "Line-Line-Line-Line-Line\n" + parser.getRequestLine() + "\n";
+            temp += "   Method: " + parser.getMethod() + "\n";
+            temp += "   Route: " + parser.getRoute()+ "\n";
+            temp += "   Version: " + parser.getHttpVersion()+ "\n\n\n";
+
+            //headers
+            temp += "Headers-Headers-Headers-Headers-Headers\n" + parser.getRequestHeaders()
+                    .replace("\n", "@\n").replace("\r", "#") + "\n\n\n";
+
+            //body
+            temp += "Body-Body-Body-Body-Body\n" + parser.getRequestBody();
+        }
 
         out.write(temp.getBytes());
         System.out.println(this.completeRequest);
