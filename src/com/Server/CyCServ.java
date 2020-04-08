@@ -2,7 +2,6 @@ package com.Server;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.logging.Logger;
 import com.Handlers.CyCRouter;
 import com.Handlers.FileHandler;
 import java.io.BufferedReader;
@@ -17,6 +16,7 @@ public final class CyCServ {
     private final HashMap<Integer, String> errors;
     private final FileHandler fileHandler;
     private ServerSocket serverSocket;
+    private int maxConnections;
     private final int MAX_PORT;
     private final int MIN_PORT;
     private CyCRouter router;
@@ -29,6 +29,7 @@ public final class CyCServ {
     public CyCServ() {
         this.fileHandler = FileHandler.newInstance();
         this.errors = new HashMap<>();
+        this.maxConnections = 100;
         this.serverSocket = null;
         this.MAX_PORT = 65535;
         this.MIN_PORT = 1;
@@ -43,6 +44,18 @@ public final class CyCServ {
     // </editor-fold>
 
     // <editor-fold desc="Getters and Setters">
+    public int getMaxConnections() {
+        return maxConnections;
+    }
+
+    public void setMaxConnections(int maxConnections) throws CyCServError{
+        if (maxConnections <= 0) {
+            throw new CyCServError("Cannot set the maximun coneccion with 0 or less");
+        } else {
+            this.maxConnections = maxConnections;
+        }
+    }
+
     public String getHost() {
         return this.host;
     }
@@ -120,7 +133,7 @@ public final class CyCServ {
         }).start();
     }
 
-    public void listen(int port, final ICyCServ cb){
+    public void listen(int port, final ICyCServ cb) {
         new Thread(() -> {
             try {
                 CyCServ.this.setPort(port);

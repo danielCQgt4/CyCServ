@@ -10,14 +10,16 @@ import java.util.logging.Logger;
 public class ClientCore implements Runnable {
 
     private static final Logger LOGGER = Logger.getLogger("com.Server");
+    private final Core.CoreBalancer balancer;
+    private final CyCServ cyCServ;
     private final Socket socket;
     private Res respose;
     private Req request;
-    private final CyCServ cyCServ;
 
-    public ClientCore(CyCServ cyCServ1, Socket socket) {
-        this.cyCServ = cyCServ1;
+    public ClientCore(CyCServ cyCServ, Socket socket, Core.CoreBalancer balancer) {
+        this.cyCServ = cyCServ;
         this.socket = socket;
+        this.balancer = balancer;
     }
 
     @Override
