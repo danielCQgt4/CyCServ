@@ -23,9 +23,10 @@ public class Core implements Runnable {
         while (true) {
             try {
                 this.socket = this.serverSocket.accept();
-                Runnable clientCore = new ClientCore(this.cyCServ, this.socket);
-                Thread runClientCore = new Thread(clientCore);
-                runClientCore.start();
+                new Thread(new ClientCore(cyCServ, socket)).start();
+//                Runnable clientCore = new ClientCore(this.cyCServ, this.socket);
+//                Thread runClientCore = new Thread(clientCore);
+//                runClientCore.start();
             } catch (IOException e) {
                 LOGGER.log(Level.INFO, "The communication fail with a client\nCause: ", e.getMessage());
             }

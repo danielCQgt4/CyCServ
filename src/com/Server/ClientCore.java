@@ -24,33 +24,36 @@ public class ClientCore implements Runnable {
     public void run() {
         try {
             this.request = new Req(socket);
-            this.respose = new Res(socket);
-            this.respose.setRESPONSE_CODE(this.request.getRESPONSE_CODE());
-            this.respose.setACCESS_CONTROL_ALLOW_ORIGIN("*"); //TODO Delete line
-            if (this.respose.getRESPONSE_CODE() == 0) {
-                this.respose.setRESPONSE_CODE(400);
-            }
-            if (this.respose.getRESPONSE_CODE() == 400) {
-                this.badRequest();
-            } else {
-                if (cyCServ.getRouter() != null) {
-                    cyCServ.getRouter().middleWares(this.request, this.respose);
-                    cyCServ.getRouter().routing();
-                    if (cyCServ.getRouter().validRoute(this.request.getRoute(), this.request.getMethod())) {
-                        this.respose.setRESPONSE_CODE(200);
-                        cyCServ.getRouter().handle(
-                                this.request,
-                                this.respose,
-                                this.request.getMethod(),
-                                this.request.getRoute()
-                        );
-                    } else {
-                        this.notFound();
-                    }
-                } else {
-                    this.notFound();
-                }
-            }
+//            this.respose = new Res(socket);
+
+//            this.respose.setRESPONSE_CODE(this.request.getRESPONSE_CODE());
+//            this.respose.setACCESS_CONTROL_ALLOW_ORIGIN("*"); //TODO Delete line
+
+//            if (this.respose.getRESPONSE_CODE() == 0) {
+//                this.respose.setRESPONSE_CODE(400);
+//            }
+//            if (this.respose.getRESPONSE_CODE() == 400) {
+//                this.badRequest();
+//            
+//            } else {
+//                if (cyCServ.getRouter() != null) {
+//                    cyCServ.getRouter().middleWares(this.request, this.respose);
+//                    cyCServ.getRouter().routing();
+//                    if (cyCServ.getRouter().validRoute(this.request.getRoute(), this.request.getMethod())) {
+//                        this.respose.setRESPONSE_CODE(200);
+//                        cyCServ.getRouter().handle(
+//                                this.request,
+//                                this.respose,
+//                                this.request.getMethod(),
+//                                this.request.getRoute()
+//                        );
+//                    } else {
+//                        this.notFound();
+//                    }
+//                } else {
+//                    this.notFound();
+//                }
+//            }
         } catch (IOException e) {
             LOGGER.log(Level.INFO, "The process during the communication FAIL {0}", e);
         } finally {

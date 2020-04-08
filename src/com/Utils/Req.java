@@ -21,12 +21,19 @@ public final class Req extends HttpIdentifiers implements CyCServRequest {
         try {
             this.setDataRequest(null);
             byte buffer[] = new byte[this.getInputStream().available()];
+
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            baos.write(buffer, 0, this.getInputStream().read(buffer));
+
+            int letter;
+            while ((letter = this.getInputStream().read(buffer)) != -1) {
+                baos.write(letter);
+            }
+
             StringBuilder stringBuilder = new StringBuilder();
             for (int i = 0; i < buffer.length; i++) {
                 stringBuilder.append((char) buffer[i]);
             }
+//            System.out.println(stringBuilder.toString().replace("\n", "#\n").replace("\r", "@"));
             this.setDataRequest(stringBuilder.toString());
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Unexpected error while reading the response ", e);
@@ -51,13 +58,13 @@ public final class Req extends HttpIdentifiers implements CyCServRequest {
             this.setRESPONSE_CODE(httpParser.getHttpStatus());
             System.out.println("\n\n\n" + data + (data.equals("") || data.isEmpty()) + " --> " + this.getRoute());
         }
-        if (this.getRESPONSE_CODE() == 0) {
-            if (data.equals("") || data.isEmpty()) {
-                this.setRESPONSE_CODE(200);
-            } else {
-                this.setRESPONSE_CODE(400);
-            }
-        }
+//        if (this.getRESPONSE_CODE() == 0) {
+//            if (data.equals("") || data.isEmpty()) {
+//                this.setRESPONSE_CODE(200);
+//            } else {
+//                this.setRESPONSE_CODE(400);
+//            }
+//        }
         //System.out.println("Code: " + this.getRESPONSE_CODE());
     }
 

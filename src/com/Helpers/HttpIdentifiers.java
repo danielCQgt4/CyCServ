@@ -60,6 +60,7 @@ public class HttpIdentifiers {
     public HttpIdentifiers(Socket socket, boolean type) throws IOException {
         this.socket = socket;
         if (type) {
+            //REQUEST
             this.inputStream = socket.getInputStream();
             this.headers = new HashMap<>();
             this.params = new HashMap<>();

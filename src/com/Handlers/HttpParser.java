@@ -34,6 +34,8 @@ public final class HttpParser {
     private String setHttpInfoLine(String data) {
         try {
             String info = data.substring(0, data.indexOf("\n"));
+            System.out.println("Hola mundo, atte:wil");
+            System.out.println(info);
             return info;
         } catch (Exception e) {
             this.httpStatus = 400;
@@ -43,7 +45,10 @@ public final class HttpParser {
 
     private String setHttpHeaders(String data) {
         try {
-            String headers = data.substring(data.indexOf("\n") + 1, data.indexOf("\n\r"));
+            String info = data.replace(this.httpInfoLine, "");
+            String headers = info.substring(0, data.indexOf("\n\r"));
+            System.out.println("Hola mundo, atte:wil");
+            System.out.println(headers);
             return headers;
         } catch (Exception e) {
             this.httpStatus = 400;
@@ -53,7 +58,11 @@ public final class HttpParser {
 
     private String setHttpBody(String data) {
         try {
-            String body = data.substring(data.indexOf("\n\r") + 3);
+            String temp = data.replace(this.httpInfoLine, "");
+            temp = temp.replace(this.httpHeadersString, "");
+            String body = temp.substring(data.indexOf("\n\r") + 3);
+            System.out.println("Hola mundo, atte:wil");
+            System.out.println(body);
             return body;
         } catch (Exception e) {
             this.httpStatus = 400;

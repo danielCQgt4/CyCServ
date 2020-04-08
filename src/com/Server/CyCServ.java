@@ -9,28 +9,39 @@ import com.Handlers.FileHandler;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.Socket;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
-public class CyCServ {
+public final class CyCServ {
 
     // <editor-fold desc="Properties">
-    private static final Logger LOGGER = Logger.getLogger("com.Server");
+    private final HashMap<Integer, String> errors;
+    private final FileHandler fileHandler;
     private ServerSocket serverSocket;
+    private static Logger LOGGER;
+    private final int MAX_PORT;
+    private final int MIN_PORT;
+    private CyCRouter router;
+    private Thread runCore;
     private String host;
     private int port;
-    private CyCRouter router;
-    private String viewPath;
-    private String error404 = "./com/StaticContent/404.html";
-    private String error400 = "./com/StaticContent/400.html";
-    private final FileHandler fileHandler = FileHandler.newInstance();
     // </editor-fold>
 
     // <editor-fold desc="Constructors">
     public CyCServ() {
-        serverSocket = null;
+        this.serverSocket = null;
         this.port = 80;
-        // TODO handle the others properties
+        this.errors = new HashMap<>();
+        this.fileHandler = FileHandler.newInstance();
+        CyCServ.LOGGER = Logger.getLogger("com.Server");
+        this.setDefaultErrors();
+        this.MAX_PORT = 65535;
+        this.MIN_PORT = 1;
+    }
+
+    private void setDefaultErrors() {
+        this.errors.put(400, "./com/StaticContent/400.html");
+        this.errors.put(404, "./com/StaticContent/404.html");
     }
     // </editor-fold>
 
@@ -43,8 +54,12 @@ public class CyCServ {
         return port;
     }
 
-    public void setPort(int port) {
-        this.port = port;
+    public void setPort(int port) throws Exception {
+        if (port <= MAX_PORT && MIN_PORT <= port) {
+            this.port = port;
+        } else {
+            throw new Exception("Cannot be set the port " + port);
+        }
     }
 
     public CyCRouter getRouter() {
@@ -55,28 +70,13 @@ public class CyCServ {
         this.router = router;
     }
 
-    public String getViewPath() {
-        return viewPath;
+    public void setError(int httpError, String render) {
+        this.errors.put(httpError, render);
     }
 
-    public void setViewPath(String viewPath) {
-        this.viewPath = viewPath;
-    }
-
-    public String getError404() {
-        return error404;
-    }
-
-    public void setError404(String error404) {
-        this.error404 = error404;
-    }
-
-    public String getError400() {
-        return error400;
-    }
-
-    public void setError400(String error400) {
-        this.error400 = error400;
+    public String getError(int httpError) {
+        String render = this.errors.get(httpError);
+        return render != null ? render : "No render route";
     }
 
     public FileHandler getFileHandler() {
@@ -85,25 +85,54 @@ public class CyCServ {
     // </editor-fold>
 
     // <editor-fold desc="Actions">
-    public void listen() {
+    private CyCServResult startServer() {
         try {
+            if (this.getPort() <= MAX_PORT && MIN_PORT <= this.getPort()) {
+                throw new CyCServError("Cannot be set the port " + this.getPort());
+            }
             serverSocket = new ServerSocket(this.getPort());
-            this.host = serverSocket.getInetAddress() + ":" + this.port;
-            Thread runCore = new Thread(new Core(this, serverSocket));
+            this.host = serverSocket.getInetAddress() + ":" + this.getPort();
+            if (this.runCore != null) {
+                if (this.runCore.isAlive()) {
+                    throw new CyCServError("This server is already running in the port " + this.getPort());
+                }
+            }
+            this.runCore = new Thread(new Core(this, serverSocket));
             runCore.start();
-            StringBuilder msj = new StringBuilder("The server is running on port ");
-            msj.append(this.getPort()).append("\nAnd waiting for connections ...");
-            System.out.println(msj.toString());
-        } catch (IllegalArgumentException e) {
-            LOGGER.log(Level.SEVERE, "The port {0} is not valid ", this.getPort());
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "The server fail during his creation \nCause: ", e.getMessage());
+            return new CyCServResult(runCore.isAlive(), null);
+        } catch (CyCServError e) {
+            return new CyCServResult(false, "Server error: \n" + e.getMessage());
+        } catch (IOException eio) {
+            return new CyCServResult(false, "Server error: \n" + eio.getMessage());
         }
     }
 
-    public void listen(int port) {
-        this.port = port;
-        this.listen();
+    public CyCServResult listen() {
+        return this.startServer();
+    }
+
+    public CyCServResult listen(int port) throws Exception {
+        this.setPort(port);
+        return this.startServer();
+    }
+
+    public void listen(final ICyCServ cb) {
+        new Thread(() -> {
+            CyCServResult r = startServer();
+            cb.onComplete(r.started, r.error);
+        }).start();
+    }
+
+    public void listen(int port, final ICyCServ cb){
+        new Thread(() -> {
+            try {
+                CyCServ.this.setPort(port);
+                CyCServResult r = startServer();
+                cb.onComplete(r.started, r.error);
+            } catch (Exception e) {
+                cb.onComplete(false, "Cannot be set the port " + port);
+            }
+        }).start();
     }
 
     public String readFile(String path) {
@@ -112,4 +141,62 @@ public class CyCServ {
         return s;
     }
     // </editor-fold>
+
+    //<editor-fold desc="Async code">
+    public interface ICyCServ {
+
+        void onComplete(boolean active, String error);
+    }
+
+    public class CyCServResult {
+
+        private final boolean started;
+        private final String error;
+
+        public CyCServResult(boolean started, String error) {
+            this.started = started;
+            this.error = error;
+        }
+
+        public boolean isStarted() {
+            return started;
+        }
+
+        public String getError() {
+            return error;
+        }
+
+    }
+
+    private class CyCServError extends IOException {
+
+        private String message;
+
+        public CyCServError() {
+        }
+
+        public CyCServError(String message) {
+            super(message);
+            this.message = message;
+        }
+
+        public void setMessageFromError(int errCode) {
+            switch (errCode) {
+                //TODO Completar
+                default:
+                    this.message = "Uknown error";
+            }
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
+
+        @Override
+        public String getMessage() {
+            return this.message;
+        }
+
+    }
+    //</editor-fold>
 }
