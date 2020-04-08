@@ -8,18 +8,23 @@ import java.util.logging.Logger;
 
 public class Core implements Runnable {
 
+    // <editor-fold desc="Attributes">
     private static final Logger LOGGER = Logger.getLogger("com.Server");
     private final ServerSocket serverSocket;
     private final CoreBalancer balancer;
     private final CyCServ cyCServ;
     private Socket socket;
+    // </editor-fold>
 
+    // <editor-fold desc="Contructors">
     public Core(CyCServ cyCServ, ServerSocket serverSocket) {
         this.cyCServ = cyCServ;
         this.serverSocket = serverSocket;
         this.balancer = new CoreBalancer(cyCServ.getMaxConnections());
     }
+    // </editor-fold>
 
+    // <editor-fold desc="Actions">
     @Override
     public void run() {
         while (true) {
@@ -41,6 +46,7 @@ public class Core implements Runnable {
             }
         }
     }
+// </editor-fold>
 
     // <editor-fold desc="Tools">
     public class CoreBalancer {

@@ -9,66 +9,32 @@ import java.util.logging.Logger;
 
 public class ClientCore implements Runnable {
 
+    // <editor-fold desc="Attribbutes">
     private static final Logger LOGGER = Logger.getLogger("com.Server");
     private final Core.CoreBalancer balancer;
     private final CyCServ cyCServ;
     private final Socket socket;
     private Res respose;
     private Req request;
+    // </editor-fold>
 
+    // <editor-fold desc="Constructors">
     public ClientCore(CyCServ cyCServ, Socket socket, Core.CoreBalancer balancer) {
         this.cyCServ = cyCServ;
         this.socket = socket;
         this.balancer = balancer;
     }
+    // </editor-fold>
 
+    // <editor-fold desc="Actions">
     @Override
     public void run() {
         try {
             this.request = new Req(socket);
-//            this.respose = new Res(socket);
-
-//            this.respose.setRESPONSE_CODE(this.request.getRESPONSE_CODE());
-//            this.respose.setACCESS_CONTROL_ALLOW_ORIGIN("*"); //TODO Delete line
-
-//            if (this.respose.getRESPONSE_CODE() == 0) {
-//                this.respose.setRESPONSE_CODE(400);
-//            }
-//            if (this.respose.getRESPONSE_CODE() == 400) {
-//                this.badRequest();
-//            
-//            } else {
-//                if (cyCServ.getRouter() != null) {
-//                    cyCServ.getRouter().middleWares(this.request, this.respose);
-//                    cyCServ.getRouter().routing();
-//                    if (cyCServ.getRouter().validRoute(this.request.getRoute(), this.request.getMethod())) {
-//                        this.respose.setRESPONSE_CODE(200);
-//                        cyCServ.getRouter().handle(
-//                                this.request,
-//                                this.respose,
-//                                this.request.getMethod(),
-//                                this.request.getRoute()
-//                        );
-//                    } else {
-//                        this.notFound();
-//                    }
-//                } else {
-//                    this.notFound();
-//                }
-//            }
+            
         } catch (IOException e) {
             LOGGER.log(Level.INFO, "The process during the communication FAIL {0}", e);
         } finally {
-            try {
-                this.request.getInputStream().close();
-            } catch (IOException | NullPointerException ex) {
-                System.out.println(ex);
-            }
-            try {
-                this.respose.getOutputStream().close();
-            } catch (IOException | NullPointerException ex) {
-                System.out.println(ex);
-            }
             try {
                 this.socket.close();
             } catch (IOException ex) {
@@ -76,17 +42,8 @@ public class ClientCore implements Runnable {
             }
         }
     }
+    // </editor-fold>
 
-    private void badRequest() throws IOException {
-        this.respose.setRESPONSE_CODE(400);
-        String body = cyCServ.readFile(cyCServ.getError(400));
-        respose.send(body);
-    }
-
-    private void notFound() throws IOException {
-        this.respose.setRESPONSE_CODE(404);
-        String body = cyCServ.readFile(cyCServ.getError(404));
-        respose.send(body);
-    }
-
+    // <editor-fold desc="Tools">
+    // </editor-fold>
 }
