@@ -16,16 +16,33 @@ public class CyCBody {
 
     // <editor-fold desc="General">
     public Object get(String key) {
-        return this.params.get(key);
+        try {
+            Object o = this.params.get(key);
+            if (o == null) {
+                o = "";
+            }
+            return o;
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     public String getString(String key) {
-        return this.get(key).toString();
+        try {
+            String s = this.get(key).toString();
+            if (s == null) {
+                s = "";
+            }
+            return s;
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     public int getInteger(String key) {
         try {
-            return Integer.parseInt(this.get(key).toString());
+            int i = Integer.parseInt(this.get(key).toString());
+            return i;
         } catch (NumberFormatException e) {
             return 0;
         }
@@ -33,7 +50,8 @@ public class CyCBody {
 
     public double getDouble(String key) {
         try {
-            return Double.parseDouble(this.get(key).toString());
+            double d = Double.parseDouble(this.get(key).toString());
+            return d;
         } catch (NumberFormatException e) {
             return 0.0;
         }
@@ -41,7 +59,8 @@ public class CyCBody {
 
     public boolean getBoolean(String key) {
         try {
-            return Boolean.parseBoolean(this.get(key).toString());
+            boolean b = Boolean.parseBoolean(this.get(key).toString());
+            return b;
         } catch (NumberFormatException e) {
             return false;
         }

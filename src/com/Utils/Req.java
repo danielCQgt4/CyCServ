@@ -98,9 +98,8 @@ public final class Req {
             //Body
             this.body = parser.getRequestBody();
             this.bodyBytes = parser.getRequestBodyBytes();
-            BodyParser.Build(
-                    this.cyCBody,
-                    this.headers.get("content-type").toString(),
+            this.cyCBody = BodyParser.Build(
+                    this.headers.get("content-type"),
                     body,
                     bodyBytes
             );
@@ -108,7 +107,7 @@ public final class Req {
 
         // <editor-fold desc="TEMP">
         String temp;
-        if (parser.isValidRequest()) {
+        if (parser.isValidRequest() && this.cyCBody != null) {
             //full
             temp = "Full-Full-Full-Full-Full \n" + this.request + "\n\n\n";
 
@@ -132,7 +131,11 @@ public final class Req {
 
             temp += "-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
             //body
-            temp += "Body-Body-Body-Body-Body\n" + this.body;
+            temp += "Body-Body-Body-Body-Body\n";
+
+//            final StringBuilder keyValues = new StringBuilder();
+            temp += this.cyCBody.getString("key");
+            temp += this.cyCBody.getString("key2");
         } else {
             temp = "No data";
         }

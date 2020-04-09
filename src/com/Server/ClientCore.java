@@ -38,7 +38,6 @@ public class ClientCore implements Runnable {
             try {
                 this.socket.close();
                 this.balancer.close(socket);
-                System.out.println(this.balancer.getUpTimeConnections());
             } catch (IOException ex) {
                 System.out.println(ex);
             }

@@ -11,25 +11,28 @@ public final class BodyParser {
     private final HashMap<String, Object> params;
     private final String contentType;
     private final CyCBody cyCBody;
-    private static BodyParser bodyParser;
     // </editor-fold>
 
     // <editor-fold desc="Constructor">
-    private BodyParser(CyCBody cyCBody, String contentType, String body, byte[] bodyBytes) {
+    private BodyParser(String contentType, String body, byte[] bodyBytes) {
         this.params = new HashMap<>();
-        cyCBody = new CyCBody(params);
-        this.cyCBody = cyCBody;
+        this.cyCBody = new CyCBody(params);
         this.body = body;
         this.bodyBytes = bodyBytes;
         this.contentType = contentType;
         this.filterArea();
     }
 
-    public static synchronized BodyParser Build(CyCBody cyCBody, String contentType, String body, byte[] bodyBytes) {
-        if (bodyParser == null) {
-            bodyParser = new BodyParser(cyCBody, contentType, body, bodyBytes);
+    private CyCBody getCyCBody() {
+        return this.cyCBody;
+    }
+
+    public static CyCBody Build(String contentType, String body, byte[] bodyBytes) {
+        if (contentType == null) {
+            contentType = "application/x-www-form-urlencoded";
         }
-        return bodyParser;
+        BodyParser bodyParser = new BodyParser(contentType, body, bodyBytes);
+        return bodyParser.getCyCBody();
     }
     // </editor-fold>
 
@@ -97,4 +100,5 @@ public final class BodyParser {
         }
     }
     // </editor-fold>
+
 }
