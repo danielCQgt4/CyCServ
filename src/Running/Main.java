@@ -15,10 +15,18 @@ public class Main {
             CyCServ.CyCServResult r = cyCServ.listen(3000);
             if (!r.isStarted()) {
                 System.out.println(r.getError());
+            } else {
+                System.out.println("Server on port -> " + cyCServ.getPort());
             }
         } catch (Exception e) {
             System.out.println(e);
         }
+    }
+
+    public static void test(String text) {
+        String[] cc = text.split("\\?", 2);
+        System.out.println(cc[0]);
+//        System.out.println(cc[1]);
     }
 
     public static class Temp {
