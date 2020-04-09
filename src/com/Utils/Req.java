@@ -6,13 +6,23 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.HashMap;
 
 public final class Req {
 
     // <editor-fold desc="Attributtes">
     private final InputStream inputStream;
-
-    private String completeRequest;
+    private String request;
+    /* *** Decode request line *** */
+    private String method;
+    private String route;
+    private String httpVerion;
+    /* *** Decode request headers *** */
+    private final HashMap<String, Object> headers;
+    /* *** Decode request body *** */
+    private String body;
+    private byte[] bodyBytes;
+    //TODO ver como manejar
 
     //TEMP
     private final OutputStream out;
@@ -20,6 +30,7 @@ public final class Req {
 
     // <editor-fold desc="Constructors">
     public Req(Socket socket) throws IOException {
+        this.headers = new HashMap<>();
         this.inputStream = socket.getInputStream();
         this.out = socket.getOutputStream();
         this.decodeRequest();
@@ -35,41 +46,51 @@ public final class Req {
             for (int i = 0; i < buffer.length; i++) {
                 stringBuilder.append((char) buffer[i]);
             }
-            this.completeRequest = stringBuilder.toString();
-            System.out.println(this.completeRequest.replace("\n", "@\n").replace("\r", "#"));
+            this.request = stringBuilder.toString();
+            System.out.println(this.request.replace("\n", "@\n").replace("\r", "#"));
         } catch (IOException e) {
-            this.completeRequest = null;
+            this.request = null;
         }
-        return completeRequest;
+        return request;
     }
 
     private void decodeRequest() throws IOException {
         HttpParser parser = new HttpParser(this.getRequestToString());
         if (parser.isValidRequest()) {
-
+            //Line
+            this.method = parser.getMethod();
+            this.route = parser.getRoute();
+            this.httpVerion = parser.getHttpVersion();
+            //Headers
+            parser.getHeaders().forEach((k, v) -> {
+                this.headers.put(k, v);
+            });
+            //Body
+            this.body = parser.getRequestBody();
+            this.bodyBytes = parser.getRequestBodyBytes();
         }
 
-        String temp = "";
 
+        // <editor-fold desc="TEMP">
+        String temp;
         if (parser.isValidRequest()) {
             //full
-            temp = "Full-Full-Full-Full-Full \n" + this.completeRequest + "\n\n\n";
+            temp = "Full-Full-Full-Full-Full \n" + this.request + "\n\n\n";
 
             temp += "-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
             //line
             temp += "Line-Line-Line-Line-Line\n\n";
-            temp += "   Method: " + parser.getMethod() + "\n";
-            temp += "   Route: " + parser.getRoute() + "\n";
-            temp += "   Version: " + parser.getHttpVersion() + "\n\n\n";
+            temp += "   Method: " + this.method + "\n";
+            temp += "   Route: " + this.route + "\n";
+            temp += "   Version: " + this.httpVerion + "\n\n\n";
 
             temp += "-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
             //headers
-            temp += "Headers-Headers-Headers-Headers-Headers\n"
-                    .replace("\n", "@\n").replace("\r", "#") + "\n\n";
+            temp += "Headers-Headers-Headers-Headers-Headers\n\n\n";
 
             final StringBuilder heads = new StringBuilder();
 
-            parser.getHeaders().forEach((k, v) -> {
+            this.headers.forEach((k, v) -> {
                 heads.append("  ").append(k).append(" -:- ").append(v).append("\n");
             });
             temp += heads.toString() + "\n\n\n";
@@ -80,6 +101,7 @@ public final class Req {
         } else {
             temp = "No data";
         }
+        // </editor-fold>
 
         
         out.write(temp.getBytes());
