@@ -33,7 +33,7 @@ public class Core implements Runnable {
                 if (this.balancer.isAccept()) {
                     new Thread(new ClientCore(this.cyCServ, this.socket, this.balancer)).start();
                 } else {
-                    //Send max connections error to client
+                    this.socket.getOutputStream().write("Max connections".getBytes());
                     try {
                         this.socket.close();
                     } catch (IOException ex) {
@@ -58,6 +58,10 @@ public class Core implements Runnable {
             this.maxConnections = maxConnections;
         }
 
+        public int getUpTimeConnections() {
+            return upTimeConnections;
+        }
+        
         private void decrease() {
             this.upTimeConnections--;
             if (this.upTimeConnections < 0) {

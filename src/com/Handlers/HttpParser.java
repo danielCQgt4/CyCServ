@@ -20,34 +20,28 @@ public final class HttpParser {
     /* **** Request headers **** */
     private final HashMap<String, String> headers;
     /* **** Request body **** */
-    private HashMap<String, Object> bodyParams;
+//    private HashMap<String, Object> bodyParams;
+    private String getBodyParams;
     // </editor-fold>
 
     // <editor-fold desc="Constructors">
     public HttpParser(String request) {
-        this.request = request;
-        /* *** Separate all data in containers *** */
-        this.initRequest();
-        /* *** Decode request line *** */
-        this.initRequestLine();
-        /* *** Decode request headers *** */
-        this.headers = new HashMap<>();
-        this.initRequestHeaders();
+        if (!request.isEmpty()) {
+            /* *** Init finals *** */
+            this.headers = new HashMap<>();
+            this.request = request;
+            this.validRequest = true;
+            /* *** Separate all data in containers *** */
+            this.initRequest();
+        } else {
+            this.headers = new HashMap<>();
+            this.request = request;
+            this.validRequest = false;
+        }
     }
     // </editor-fold>
 
     // <editor-fold desc="Getters">
-    public String getRequestLine() {
-        return requestLine;
-    }
-
-    public String getRequestHeaders() {
-        return requestHeaders;
-    }
-
-    public String getRequestBody() {
-        return requestBody;
-    }
 
     public boolean isValidRequest() {
         return validRequest;
@@ -68,25 +62,45 @@ public final class HttpParser {
     public HashMap<String, String> getHeaders() {
         return headers;
     }
+
+    public String getRequestBody() {
+        return requestBody;
+    }
+
+    public byte[] getRequestBodyBytes() {
+        return requestBodyBytes;
+    }
     // </editor-fold>
 
     // <editor-fold desc="Init">
     private void initRequest() {
         try {
-            //Request Line
+            /* *** Decode request line *** */
             String calcReq = this.request;
             this.requestLine = calcReq.substring(0, calcReq.indexOf("\r"));
             calcReq = calcReq.replace(this.requestLine, "");
-            //Request Headers
+            this.initRequestLine();
+
+            /* *** Decode request headers *** */
             this.requestHeaders = calcReq.substring(2, calcReq.indexOf("\r\n\r\n"));
             calcReq = calcReq.replace(this.requestHeaders, "");
-            //Request Body
-            if (!this.requestLine.toLowerCase().startsWith("head")) {//Control head method
-                this.requestBody = calcReq.replace("\n", "").replace("\r", "");
-                this.requestBodyBytes = this.requestBody.getBytes();
+            this.initRequestHeaders();
+
+            /* *** Decode request body *** */
+            if (!this.method.equals("head")) {//Control head method
+                if (this.method.equals("get")) {
+                    this.requestBody = this.getBodyParams;
+                    if (this.requestBody != null) {
+                        this.requestBodyBytes = this.requestBody.getBytes();
+                    }
+                } else {
+                    this.requestBody = calcReq.replace("\n", "").replace("\r", "");
+                    this.requestBodyBytes = this.requestBody.getBytes();
+                }
             }
             this.validRequest = true;
         } catch (Exception e) {
+            System.out.println(e);
             this.validRequest = false;
         }
     }
@@ -99,7 +113,11 @@ public final class HttpParser {
                     String[] components = calcReq.split(" ");
                     if (components.length == 3) {
                         this.method = components[0].toLowerCase();
-                        this.routeOriginal = components[1].toLowerCase().split("\\?", 2)[0];
+                        String[] getDecode = components[1].toLowerCase().split("\\?", 2);
+                        this.routeOriginal = getDecode[0];
+                        if (getDecode.length == 2) {
+                            this.getBodyParams = cleanBody(getDecode[1]);
+                        }
                         this.route = cleanRoute(this.routeOriginal);
                         this.httpVersion = components[2].toLowerCase();
                         if (!this.httpVersion.equals("http/1.1")) {
@@ -142,99 +160,8 @@ public final class HttpParser {
     }
     // </editor-fold>
 
-    // <editor-fold desc="WorkArea">
-    private void initRequestBody() {
-        if (this.validRequest && !this.method.equals("head")) {
-            try {
-                String content = this.headers.get("content-type");
-                if (content != null) {
-                    if (content.startsWith("application")) {
-                        initApplicatonBodyParser();
-                    } // <editor-fold desc="Other">
-                    else if (content.startsWith("audio")) {
-
-                    } else if (content.startsWith("image")) {
-
-                    } else if (content.startsWith("multipart")) {
-
-                    } else if (content.startsWith("text")) {
-
-                    } else if (content.startsWith("video")) {
-
-                    } else if (content.startsWith("application/vnd.")) {
-
-                    } else {
-
-                    }
-                    // </editor-fold>
-                } else {
-                    //Handle body parser
-                }
-            } catch (Exception e) {
-                this.validRequest = false;
-            }
-        }
-    }
-
-    private void initApplicatonBodyParser() {
-        try {
-            this.bodyParams = new HashMap<>();
-            switch (this.headers.get("content-type")) {
-                // <editor-fold desc="Unhandle">
-                case "application/EDI-X12":
-                    break;
-                case "application/EDIFACT":
-                    break;
-                case "application/octet-stream":
-                    break;
-                case "application/ogg":
-                    break;
-                case "application/xhtml+xml":
-                    break;
-                case "application/x-shockwave-flash":
-                    break;
-                case "application/javascript"://FILE
-                    break;
-                case "application/pdf"://FILE
-                    break;
-                case "application/zip"://FILE
-                    break;
-                // </editor-fold>
-                case "application/json"://FORMATTER
-                    break;
-                case "application/ld+json"://FORMATTER
-                    break;
-                case "application/xml"://FORMATTER
-                    break;
-                default://application/x-www-form-urlencoded
-                    this.formUrlenconded();
-                    break;
-            }
-        } catch (Exception e) {
-
-        }
-    }
-
-    private void formUrlenconded() {
-        try {
-            String[] objects = this.requestBody.split("&");
-            for (String object : objects) {
-                try {
-                    String[] keyValue = object.split("=", 2);
-                    if (keyValue.length == 2) {
-                        this.bodyParams.put(keyValue[0], keyValue[1]);
-                    }
-                } catch (Exception e) {
-                    System.err.println("Error parsing: " + object + "\n\n");
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Error parsing: " + this.requestBody + "\nAs application/x-www-form-urlencoded \n\n");
-        }
-    }
-    // </editor-fold>
-
-    private String cleanRoute(String routeUncoding) {
+    // <editor-fold desc="Tools">
+    private String clean(String routeUncoding) {
         // <editor-fold desc="static">
         routeUncoding = routeUncoding.replace("%7f", (char) 127 + "");
         routeUncoding = routeUncoding.replace("%7e", (char) 126 + "");
@@ -262,12 +189,34 @@ public final class HttpParser {
         routeUncoding = routeUncoding.replace("%2c", (char) 44 + "");
         routeUncoding = routeUncoding.replace("%2b", (char) 43 + "");
 
+        // </editor-fold>
+        return routeUncoding;
+    }
+
+    private String cleanRoute(String routeUncoding) {
+        // <editor-fold desc="static">
+        routeUncoding = clean(routeUncoding);
+
         routeUncoding = routeUncoding.replace("%20", "");
-        routeUncoding = routeUncoding.replace("+", "");
+        routeUncoding = routeUncoding.replace("\\+", "");
         // </editor-fold>
         for (int i = 33; i < 42; i++) {
             routeUncoding = routeUncoding.replace("%" + (i - 12), (char) i + "");
         }
         return routeUncoding;
     }
+
+    private String cleanBody(String routeUncoding) {
+        // <editor-fold desc="static">
+        routeUncoding = clean(routeUncoding);
+
+        routeUncoding = routeUncoding.replace("%20", " ");
+        routeUncoding = routeUncoding.replace("\\+", " ");
+        // </editor-fold>
+        for (int i = 33; i < 42; i++) {
+            routeUncoding = routeUncoding.replace("%" + (i - 12), (char) i + "");
+        }
+        return routeUncoding;
+    }
+    // </editor-fold>
 }

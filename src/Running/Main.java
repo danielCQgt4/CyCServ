@@ -24,9 +24,8 @@ public class Main {
     }
 
     public static void test(String text) {
-        String[] cc = text.split("\\?", 2);
-        System.out.println(cc[0]);
-//        System.out.println(cc[1]);
+        text = text.replaceAll("\\+", " ");
+        System.out.println(text);
     }
 
     public static class Temp {

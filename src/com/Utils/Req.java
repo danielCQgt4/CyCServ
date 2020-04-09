@@ -12,17 +12,16 @@ public final class Req {
     // <editor-fold desc="Attributtes">
     private final InputStream inputStream;
 
+    private String completeRequest;
+
     //TEMP
     private final OutputStream out;
-
-    private String completeRequest;
     // </editor-fold>
 
     // <editor-fold desc="Constructors">
     public Req(Socket socket) throws IOException {
         this.inputStream = socket.getInputStream();
         this.out = socket.getOutputStream();
-        this.getRequestToString();
         this.decodeRequest();
     }
     // </editor-fold>
@@ -37,6 +36,7 @@ public final class Req {
                 stringBuilder.append((char) buffer[i]);
             }
             this.completeRequest = stringBuilder.toString();
+            System.out.println(this.completeRequest.replace("\n", "@\n").replace("\r", "#"));
         } catch (IOException e) {
             this.completeRequest = null;
         }
@@ -44,7 +44,11 @@ public final class Req {
     }
 
     private void decodeRequest() throws IOException {
-        HttpParser parser = new HttpParser(this.completeRequest);
+        HttpParser parser = new HttpParser(this.getRequestToString());
+        if (parser.isValidRequest()) {
+
+        }
+
         String temp = "";
 
         if (parser.isValidRequest()) {
@@ -53,14 +57,14 @@ public final class Req {
 
             temp += "-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
             //line
-            temp += "Line-Line-Line-Line-Line\n" + parser.getRequestLine() + "\n\n";
+            temp += "Line-Line-Line-Line-Line\n\n";
             temp += "   Method: " + parser.getMethod() + "\n";
             temp += "   Route: " + parser.getRoute() + "\n";
             temp += "   Version: " + parser.getHttpVersion() + "\n\n\n";
 
             temp += "-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
             //headers
-            temp += "Headers-Headers-Headers-Headers-Headers\n" + parser.getRequestHeaders()
+            temp += "Headers-Headers-Headers-Headers-Headers\n"
                     .replace("\n", "@\n").replace("\r", "#") + "\n\n";
 
             final StringBuilder heads = new StringBuilder();
@@ -77,8 +81,9 @@ public final class Req {
             temp = "No data";
         }
 
+        
         out.write(temp.getBytes());
-        System.out.println(this.completeRequest);
+        //System.out.println(this.completeRequest);
         this.inputStream.close();
         this.out.close();
     }
