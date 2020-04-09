@@ -133,7 +133,6 @@ public final class Req {
             //body
             temp += "Body-Body-Body-Body-Body\n";
 
-//            final StringBuilder keyValues = new StringBuilder();
             temp += this.cyCBody.getString("key");
             temp += this.cyCBody.getString("key2");
         } else {

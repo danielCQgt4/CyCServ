@@ -2,14 +2,29 @@ package Running;
 
 import com.Server.CyCServ;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.script.*;
 
 public class Main {
 
     public static void main(String[] args) {
-        initServer();
+        try {
+            jsRun();
+        } catch (IOException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ScriptException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchMethodException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public static void test(String text) {
@@ -17,7 +32,7 @@ public class Main {
         System.out.println(text);
     }
 
-    public static void initServer(){
+    public static void initServer() {
         try {
             CyCServ cyCServ = new CyCServ();
 //            cyCServ.setRouter(new Router());
@@ -31,7 +46,7 @@ public class Main {
             System.out.println(e);
         }
     }
-    
+
     public static class Temp {
 
         public void tasto() {
@@ -42,5 +57,17 @@ public class Main {
                     .lines().collect(Collectors.joining("\n"));
             System.out.println(s);
         }
+    }
+
+    public static void jsRun() throws IOException, ScriptException, NoSuchMethodException {
+        ScriptEngineManager manager = new ScriptEngineManager();
+        ScriptEngine engine = manager.getEngineByName("JavaScript");
+// read script file
+        engine.eval(Files.newBufferedReader(Paths.get("D:\\Projects\\JavaProjects\\Desktop\\CyCServ\\src\\com\\StaticContent\\temp.js"), StandardCharsets.UTF_8));
+
+        Invocable inv = (Invocable) engine;
+// call function from script file
+        Object o = inv.invokeFunction("temp");
+        System.out.println(o);
     }
 }
