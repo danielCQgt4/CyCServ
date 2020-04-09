@@ -1,6 +1,8 @@
 package com.Utils;
 
-import com.Handlers.HttpParser;
+import com.Helpers.BodyParser;
+import com.Helpers.HttpParser;
+import com.Models.CyCBody;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,10 +20,11 @@ public final class Req {
     private String route;
     private String httpVerion;
     /* *** Decode request headers *** */
-    private final HashMap<String, Object> headers;
+    private final HashMap<String, String> headers;
     /* *** Decode request body *** */
     private String body;
     private byte[] bodyBytes;
+    private CyCBody cyCBody;
     //TODO ver como manejar
 
     //TEMP
@@ -37,6 +40,33 @@ public final class Req {
     }
     // </editor-fold>
 
+    // <editor-fold desc="Getters">
+    public CyCBody getCyCBody() {
+        return cyCBody;
+    }
+
+    public String getRequest() {
+        return request;
+    }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public String getRoute() {
+        return route;
+    }
+
+    public String getHttpVerion() {
+        return httpVerion;
+    }
+
+    public String getHeader(String key) {
+        return this.headers.get(key);
+    }
+    // </editor-fold>
+
+    // <editor-fold desc="Actions">
     private String getRequestToString() throws IOException {
         try {
             byte buffer[] = new byte[this.inputStream.available()];
@@ -68,8 +98,13 @@ public final class Req {
             //Body
             this.body = parser.getRequestBody();
             this.bodyBytes = parser.getRequestBodyBytes();
+            BodyParser.Build(
+                    this.cyCBody,
+                    this.headers.get("content-type").toString(),
+                    body,
+                    bodyBytes
+            );
         }
-
 
         // <editor-fold desc="TEMP">
         String temp;
@@ -97,16 +132,16 @@ public final class Req {
 
             temp += "-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
             //body
-            temp += "Body-Body-Body-Body-Body\n" + parser.getRequestBody();
+            temp += "Body-Body-Body-Body-Body\n" + this.body;
         } else {
             temp = "No data";
         }
         // </editor-fold>
 
-        
         out.write(temp.getBytes());
         //System.out.println(this.completeRequest);
         this.inputStream.close();
         this.out.close();
     }
+    // </editor-fold>
 }

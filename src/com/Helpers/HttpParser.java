@@ -1,4 +1,4 @@
-package com.Handlers;
+package com.Helpers;
 
 import java.util.HashMap;
 
@@ -42,7 +42,6 @@ public final class HttpParser {
     // </editor-fold>
 
     // <editor-fold desc="Getters">
-
     public boolean isValidRequest() {
         return validRequest;
     }
@@ -88,7 +87,7 @@ public final class HttpParser {
 
             /* *** Decode request body *** */
             if (!this.method.equals("head")) {//Control head method
-                if (this.method.equals("get")) {
+                if (this.method.equals("get") || this.getBodyParams != null) {
                     this.requestBody = this.getBodyParams;
                     if (this.requestBody != null) {
                         this.requestBodyBytes = this.requestBody.getBytes();

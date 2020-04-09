@@ -9,6 +9,15 @@ import java.util.stream.Collectors;
 public class Main {
 
     public static void main(String[] args) {
+        initServer();
+    }
+
+    public static void test(String text) {
+        text = text.replaceAll("\\+", " ");
+        System.out.println(text);
+    }
+
+    public static void initServer(){
         try {
             CyCServ cyCServ = new CyCServ();
 //            cyCServ.setRouter(new Router());
@@ -22,12 +31,7 @@ public class Main {
             System.out.println(e);
         }
     }
-
-    public static void test(String text) {
-        text = text.replaceAll("\\+", " ");
-        System.out.println(text);
-    }
-
+    
     public static class Temp {
 
         public void tasto() {
