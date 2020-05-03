@@ -77,8 +77,8 @@ public class Res {
         this.CRLF = "\r\n";
         this.HTTP_VERSION = "HTTP/1.1";
         this.headers = new HashMap<>();
-        this.init();
         this.cyCServ = cyCServ;
+        this.init();
     }
     // </editor-fold>
 
@@ -104,6 +104,10 @@ public class Res {
     // </editor-fold>
 
     // <editor-fold desc="Actions">
+    public void close() throws IOException {
+        out.close();
+    }
+
     public Res setStatus(int status) {
         this.status = status;
         return this;
@@ -164,6 +168,8 @@ public class Res {
             byte[] top = composeResponse();
             this.headers.put("Content-Length", data.length);
             this.headers.put("Content-Encoding", "gzip");
+            this.headers.put("A", "1234");
+            this.headers.put("Cache-Control", "no-store");
             byte[] allResponse = new byte[top.length + data.length];
             ByteBuffer process = ByteBuffer.wrap(allResponse);
             process.put(top);
@@ -173,12 +179,6 @@ public class Res {
             out.flush();
         } catch (IOException ex) {
             System.out.println(ex);
-        } finally {
-            try {
-                out.close();
-            } catch (IOException e) {
-                System.out.println(e);
-            }
         }
     }
 
@@ -188,6 +188,9 @@ public class Res {
     }
 
     public void send(String text) {
+        if (this.status == 0) {
+            this.status = 200;
+        }
         this.headers.put("Content-Type", "text/html; charset=utf-8");
         sendResponse(text.getBytes());
     }
@@ -214,7 +217,7 @@ public class Res {
             } else {
                 this.setStatus(404).sendFile("src\\com\\StaticContent\\400.html");
             }
-            
+
             Logger.getLogger(Res.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

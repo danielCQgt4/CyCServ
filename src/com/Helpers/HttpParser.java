@@ -37,6 +37,7 @@ public final class HttpParser {
             this.headers = new HashMap<>();
             this.request = request;
             this.validRequest = false;
+            System.out.println("Empty data");
         }
     }
     // </editor-fold>
@@ -106,6 +107,7 @@ public final class HttpParser {
         } catch (Exception e) {
             System.out.println(e);
             this.validRequest = false;
+            System.out.println("Request format");
         }
     }
 
@@ -128,15 +130,19 @@ public final class HttpParser {
                         this.httpVersion = components[2].toLowerCase();
                         if (!this.httpVersion.equals("http/1.1")) {
                             this.validRequest = false;
+                            System.out.println("http no 1.1");
                         }
                     } else {
                         this.validRequest = false;
+                        System.out.println("bas req line");
                     }
                 } else {
                     this.validRequest = false;
+                    System.out.println("bas req line 2");
                 }
             } catch (Exception e) {
                 this.validRequest = false;
+                System.out.println("Error " + e);
             }
         }
     }
@@ -155,12 +161,14 @@ public final class HttpParser {
                         );
                     } else {
                         this.validRequest = false;
+                        System.out.println("No headers");
                         break;
                     }
                 }
                 this.validRequest = true;
             } catch (Exception e) {
                 this.validRequest = false;
+                System.out.println("Error-2 " + e);
             }
         }
     }

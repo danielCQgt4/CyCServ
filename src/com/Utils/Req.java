@@ -13,8 +13,10 @@ import java.util.HashMap;
 public final class Req {
 
     // <editor-fold desc="Attributtes">
+    private String cache;
     private InputStream inputStream;
     private String request;
+    private boolean validRequest;
     /* *** Decode request line *** */
     private String method;
     private String route;
@@ -29,14 +31,19 @@ public final class Req {
 
     // </editor-fold>
     // <editor-fold desc="Constructors">
-    public Req(Socket socket) throws IOException {
+    public Req(Socket socket, String cache) throws IOException {
         this.headers = new HashMap<>();
         this.inputStream = socket.getInputStream();
+        this.cache = cache;
         this.decodeRequest();
     }
     // </editor-fold>
 
     // <editor-fold desc="Getters">
+    public boolean isValidRequest() {
+        return validRequest;
+    }
+
     public CyCBody getCyCBody() {
         return cyCBody;
     }
@@ -82,8 +89,20 @@ public final class Req {
     }
 
     private void decodeRequest() throws IOException {
-        HttpParser parser = new HttpParser(this.getRequestToString());
+        String data = getRequestToString();
+        if (data.isEmpty()) {
+            System.out.println("Using cache");
+            data = this.cache;
+            this.validRequest = true;
+        } else {
+            this.validRequest = false;
+        }
+        if (data == null) {
+            data = "";
+        }
+        HttpParser parser = new HttpParser(data);
         if (parser.isValidRequest()) {
+            this.validRequest = true;
             //Line
             this.method = parser.getMethod();
             this.route = parser.getRoute();
@@ -100,9 +119,13 @@ public final class Req {
                     body,
                     bodyBytes
             );
+        } else {
+            this.validRequest = false;
         }
-
     }
 
+    public void close() throws IOException {
+        inputStream.close();
+    }
     // </editor-fold>
 }

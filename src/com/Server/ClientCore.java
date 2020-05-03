@@ -4,13 +4,12 @@ import com.Utils.Req;
 import com.Utils.Res;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.HashMap;
 
 public class ClientCore implements Runnable {
 
     // <editor-fold desc="Attribbutes">
-    private static final Logger LOGGER = Logger.getLogger("com.Server");
+    private HashMap<Object, String> cache = new HashMap<>();
     private CyCServ cyCServ;
     private Socket socket;
     private Res respose;
@@ -18,9 +17,10 @@ public class ClientCore implements Runnable {
     // </editor-fold>
 
     // <editor-fold desc="Constructors">
-    public ClientCore(CyCServ cyCServ, Socket socket) {
+    public ClientCore(CyCServ cyCServ, Socket socket, HashMap<Object, String> cache) {
         this.cyCServ = cyCServ;
         this.socket = socket;
+        this.cache = cache;
     }
     // </editor-fold>
 
@@ -28,13 +28,36 @@ public class ClientCore implements Runnable {
     @Override
     public void run() {
         try {
-            this.request = new Req(socket);
+            String s = this.cache.get(socket.getInetAddress());
+            this.request = new Req(socket, this.cache.get(socket.getInetAddress()));
             this.respose = new Res(request, socket, cyCServ);
-            respose.setStatus(200).sendFile("src\\com\\StaticContent\\temp.js");
-            //TODO Continue
+            if (this.request.isValidRequest()) {
+                if (this.cache.get(socket.getInetAddress()) != null) {
+                    this.respose.send("Hola desde cache");
+                } else {
+                    this.respose.send("Hola");
+                }
+            } else {
+                respose.setStatus(400).sendFile(cyCServ.getError(400));
+            }
+            if (!this.request.getRequest().isEmpty()) {
+                System.out.println("Update cache");
+                
+                this.cache.put(socket.getInetAddress(), request.getRequest());
+            }
         } catch (IOException e) {
-            LOGGER.log(Level.INFO, "The process during the communication FAIL {0}", e);
+            System.err.println("The request has failed -> " + e);
         } finally {
+            try {
+                request.close();
+            } catch (Exception e) {
+
+            }
+            try {
+                respose.close();
+            } catch (Exception e) {
+
+            }
             try {
                 this.socket.close();
             } catch (IOException ex) {
