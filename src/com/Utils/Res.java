@@ -9,8 +9,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
 
 public class Res {
 
@@ -106,7 +105,6 @@ public class Res {
     private String getMessageStatus(int code) {
         for (Object[] obj : HTTPREPLIES) {
             if ((int) obj[0] == code) {
-                System.out.println(obj[1].toString());
                 return obj[1].toString();
             }
         }
@@ -158,12 +156,14 @@ public class Res {
         try {
             byte[] top = composeResponse();
             this.headers.put("Content-Length", data.length);
+            this.headers.put("Content-Encoding", "gzip");
             byte[] allResponse = new byte[top.length + data.length];
             ByteBuffer process = ByteBuffer.wrap(allResponse);
             process.put(top);
             process.put(data);
             allResponse = process.array();
             out.write(allResponse);
+            out.flush();
         } catch (IOException ex) {
             System.out.println(ex);
         } finally {

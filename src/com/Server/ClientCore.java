@@ -30,8 +30,7 @@ public class ClientCore implements Runnable {
         try {
             this.request = new Req(socket);
             this.respose = new Res(request, socket);
-            respose.setStatus(404).sendText("Hola");
-            System.out.println("new client");
+            respose.setStatus(200).sendText("Hola");
             //TODO Continue
         } catch (IOException e) {
             LOGGER.log(Level.INFO, "The process during the communication FAIL {0}", e);
