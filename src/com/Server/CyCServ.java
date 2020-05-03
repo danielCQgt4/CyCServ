@@ -38,8 +38,8 @@ public final class CyCServ {
     }
 
     private void setDefaultErrors() {
-        this.errors.put(400, "./com/StaticContent/400.html");
-        this.errors.put(404, "./com/StaticContent/404.html");
+        this.errors.put(400, "src\\com\\StaticContent\\400.html");
+        this.errors.put(404, "src\\com\\StaticContent\\404.html");
     }
     // </editor-fold>
 
@@ -48,7 +48,7 @@ public final class CyCServ {
         return maxConnections;
     }
 
-    public void setMaxConnections(int maxConnections) throws CyCServError{
+    public void setMaxConnections(int maxConnections) throws CyCServError {
         if (maxConnections <= 0) {
             throw new CyCServError("Cannot set the maximun coneccion with 0 or less");
         } else {

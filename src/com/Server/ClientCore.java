@@ -29,8 +29,8 @@ public class ClientCore implements Runnable {
     public void run() {
         try {
             this.request = new Req(socket);
-            this.respose = new Res(request, socket);
-            respose.setStatus(200).sendText("Hola");
+            this.respose = new Res(request, socket, cyCServ);
+            respose.setStatus(200).sendFile("src\\com\\StaticContent\\temp.js");
             //TODO Continue
         } catch (IOException e) {
             LOGGER.log(Level.INFO, "The process during the communication FAIL {0}", e);

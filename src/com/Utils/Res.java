@@ -1,5 +1,9 @@
 package com.Utils;
 
+import com.Server.CyCServ;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -9,12 +13,14 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
-import java.util.zip.GZIPOutputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Res {
 
     // <editor-fold desc="Attributtes">
     private Req request;
+    private CyCServ cyCServ;
     private OutputStream out;
     private int status;
     private String CRLF;
@@ -65,13 +71,14 @@ public class Res {
     // </editor-fold>
 
     // <editor-fold desc="Constructors">
-    public Res(Req request, Socket socket) throws IOException {
+    public Res(Req request, Socket socket, CyCServ cyCServ) throws IOException {
         this.request = request;
         this.out = socket.getOutputStream();
         this.CRLF = "\r\n";
         this.HTTP_VERSION = "HTTP/1.1";
         this.headers = new HashMap<>();
         this.init();
+        this.cyCServ = cyCServ;
     }
     // </editor-fold>
 
@@ -152,7 +159,7 @@ public class Res {
         return composed.toString().getBytes();
     }
 
-    private void send(byte[] data) {
+    private void sendResponse(byte[] data) {
         try {
             byte[] top = composeResponse();
             this.headers.put("Content-Length", data.length);
@@ -177,7 +184,39 @@ public class Res {
 
     public void sendText(String text) {
         this.headers.put("Content-Type", "text/plain");
-        send(text.getBytes());
+        sendResponse(text.getBytes());
+    }
+
+    public void send(String text) {
+        this.headers.put("Content-Type", "text/html; charset=utf-8");
+        sendResponse(text.getBytes());
+    }
+
+    public void sendFile(String filePath) {
+        try {
+            FileInputStream f = new FileInputStream(filePath);
+            int l = f.available();
+            byte[] data = new byte[l];
+            f.read(data);
+            sendResponse(data);
+        } catch (FileNotFoundException ex) {
+            System.err.println("Cant find the file: " + filePath);
+            File file = new File(this.cyCServ.getError(404));
+            if (file.exists()) {
+                this.setStatus(404).sendFile(this.cyCServ.getError(404));
+            } else {
+                this.setStatus(404).sendFile("src\\com\\StaticContent\\404.html");
+            }
+        } catch (IOException ex) {
+            File file = new File(this.cyCServ.getError(404));
+            if (file.exists()) {
+                this.setStatus(400).sendFile(this.cyCServ.getError(400));
+            } else {
+                this.setStatus(404).sendFile("src\\com\\StaticContent\\400.html");
+            }
+            
+            Logger.getLogger(Res.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     // </editor-fold>
 }

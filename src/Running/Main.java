@@ -20,7 +20,7 @@ public class Main {
 
     public static void main(String[] args) {
         initServer();
-        
+
 //        System.out.println();
     }
 
@@ -33,6 +33,7 @@ public class Main {
         try {
             CyCServ cyCServ = new CyCServ();
 //            cyCServ.setRouter(new Router());
+            cyCServ.setError(404, "test.html");
             CyCServ.CyCServResult r = cyCServ.listen(8080);
             cyCServ.setMaxConnections(100);
             if (!r.isStarted()) {
