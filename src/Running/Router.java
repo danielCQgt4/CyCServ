@@ -4,7 +4,11 @@ public class Router {
 
 //    @Override
 //    public void routing() {
-//        get("/");
+//        get("/",new RouterHandler(Req req,Res res,Continue con)->{
+//          
+//        },new RouterHandler(Req req,Res res,Continue con)->{
+//          
+//        });
 //        get("/favicon.ico");
 //    }
 //

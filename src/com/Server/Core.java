@@ -3,6 +3,8 @@ package com.Server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,12 +16,15 @@ public class Core implements Runnable {
     private final CoreBalancer balancer;
     private final CyCServ cyCServ;
     private Socket socket;
+
+    private final ExecutorService pool;
     // </editor-fold>
 
     // <editor-fold desc="Contructors">
     public Core(CyCServ cyCServ, ServerSocket serverSocket) {
         this.cyCServ = cyCServ;
         this.serverSocket = serverSocket;
+        this.pool = Executors.newFixedThreadPool(cyCServ.getMaxConnections());
         this.balancer = new CoreBalancer(cyCServ.getMaxConnections());
     }
     // </editor-fold>
@@ -30,16 +35,17 @@ public class Core implements Runnable {
         while (true) {
             try {
                 this.socket = this.serverSocket.accept();
-                if (this.balancer.isAccept()) {
-                    new Thread(new ClientCore(this.cyCServ, this.socket, this.balancer)).start();
-                } else {
-                    this.socket.getOutputStream().write("Max connections".getBytes());
-                    try {
-                        this.socket.close();
-                    } catch (IOException ex) {
-                    }
-                    LOGGER.log(Level.INFO, "The server have the max connections ", this.cyCServ.getMaxConnections());
-                }
+//                if (this.balancer.isAccept()) {
+                pool.execute(new ClientCore(this.cyCServ, this.socket, this.balancer));
+//                    new Thread(new ClientCore(this.cyCServ, this.socket, this.balancer)).start();
+//                } else {
+//                    this.socket.getOutputStream().write("Max connections".getBytes());
+//                    try {
+//                        this.socket.close();
+//                    } catch (IOException ex) {
+//                    }
+//                    LOGGER.log(Level.INFO, "The server have the max connections ", this.cyCServ.getMaxConnections());
+//                }
             } catch (IOException e) {
                 System.out.println();
                 LOGGER.log(Level.INFO, "The communication fail with a client\nCause: ", e.getMessage());
@@ -61,7 +67,7 @@ public class Core implements Runnable {
         public int getUpTimeConnections() {
             return upTimeConnections;
         }
-        
+
         private void decrease() {
             this.upTimeConnections--;
             if (this.upTimeConnections < 0) {

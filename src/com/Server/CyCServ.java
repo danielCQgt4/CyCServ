@@ -95,7 +95,7 @@ public final class CyCServ {
     // </editor-fold>
 
     // <editor-fold desc="Actions">
-    private CyCServResult startServer() {
+    private synchronized CyCServResult startServer() {
         try {
             if (!(this.getPort() <= MAX_PORT && MIN_PORT <= this.getPort())) {
                 throw new CyCServError("Cannot be set the port " + this.getPort());

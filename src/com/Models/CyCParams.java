@@ -9,7 +9,7 @@ public class CyCParams<K, V> extends HashMap<K, V> {
         if (o == null) {
             return "[no-data]";
         } else {
-            return this.get(k);
+            return o;
         }
     }
 

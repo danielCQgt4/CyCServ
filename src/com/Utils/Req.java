@@ -133,9 +133,9 @@ public final class Req {
             //body
             temp += "Body-Body-Body-Body-Body\n";
 
-            System.out.println(this.cyCBody.getObject(1).getObject("key2").get("key3"));
-            temp += this.cyCBody.getObject(0).get("key");
-//            temp += this.cyCBody.get("key2");
+//            System.out.println(this.cyCBody.getObject(1).getObject("key2").get("key3"));
+//            temp += this.cyCBody.getObject(0).get("key");
+            temp += this.cyCBody.get("key");
         } else {
             temp = "No data";
         }
