@@ -1,21 +1,31 @@
 package com.Helpers;
 
 import com.Models.CyCBody;
+import com.Models.CyCParams;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
 public final class BodyParser {
 
     // <editor-fold desc="Attributes">
     private final String body;
     private final byte[] bodyBytes;//To handle files
-    private final HashMap<String, Object> params;
+    private final CyCParams<Object, Object> params;
     private final String contentType;
     private final CyCBody cyCBody;
     // </editor-fold>
 
     // <editor-fold desc="Constructor">
     private BodyParser(String contentType, String body, byte[] bodyBytes) {
-        this.params = new HashMap<>();
+        this.params = new CyCParams<>();
         this.cyCBody = new CyCBody(params);
         this.body = body;
         this.bodyBytes = bodyBytes;
@@ -67,7 +77,10 @@ public final class BodyParser {
          */
         switch (this.contentType) {
             case "application/json":
-                //NOT SUPPORTED
+                json();
+                this.params.forEach((k, v) -> {
+                    System.out.println(k + ":" + v);
+                });
                 break;
             case "application/xml":
                 //NOT SUPPORTED
@@ -101,4 +114,85 @@ public final class BodyParser {
     }
     // </editor-fold>
 
+    // <editor-fold desc="json">
+    private void json() {
+        if (this.body != null) {
+            String file = "src\\com\\jsparser\\jsonParser.js";
+            ScriptObjectMirror o = (ScriptObjectMirror) execJs(file, "isJson", this.body);
+            if (o != null) {
+                initJson(file, o);
+            } else {
+                System.err.println("Error parsing data from JSON");
+            }
+        }
+    }
+
+    private void initJson(String file, ScriptObjectMirror json) {
+        if (json.isArray()) {
+            decodedArrayJson(json, this.params);
+        } else {
+            decodeObjectJson(json, this.params);
+        }
+    }
+
+    private void decodeObjectJson(ScriptObjectMirror json, HashMap<Object, Object> parent) {
+        String[] keys = json.getOwnKeys(true);
+        for (String key : keys) {
+            try {
+                Object k = json.get(key);
+                if (k instanceof String || k instanceof Character || k instanceof Byte || k instanceof Boolean
+                        || k instanceof Short || k instanceof Integer || k instanceof Double || k instanceof Float
+                        || k instanceof Long) {
+                    parent.put(key, json.get(key));
+                } else {
+                    if (((ScriptObjectMirror) k).isArray()) {
+                        HashMap<Object, Object> subP = new HashMap<>();
+                        parent.put(key, subP);
+                        decodedArrayJson(json, subP);
+                    } else {
+                        HashMap<Object, Object> subP = new HashMap<>();
+                        parent.put(key, subP);
+                        decodeObjectJson((ScriptObjectMirror) k, subP);
+                    }
+                }
+            } catch (Exception e) {
+                parent.put(key, null);
+            }
+        }
+    }
+
+    private void decodedArrayJson(ScriptObjectMirror json, HashMap<Object, Object> parent) {
+        int t = json.size();
+        for (int i = 0; i < t; i++) {
+            try {
+                Object k = json.getSlot(i);
+                if (((ScriptObjectMirror) k).isArray()) {
+                    HashMap<Object, Object> subP = new HashMap<>();
+                    parent.put(i, subP);
+                    decodedArrayJson(json, subP);
+                } else {
+                    HashMap<Object, Object> subP = new HashMap<>();
+                    parent.put(i, subP);
+                    decodeObjectJson((ScriptObjectMirror) k, subP);
+                }
+            } catch (Exception e) {
+                parent.put(i, null);
+            }
+        }
+    }
+
+    private Object execJs(String file, String function, Object p) {
+        try {
+            ScriptEngineManager manager = new ScriptEngineManager();
+            ScriptEngine engine = manager.getEngineByName("JavaScript");
+            engine.eval(Files.newBufferedReader(Paths.get(file), StandardCharsets.UTF_8));
+            Invocable inv = (Invocable) engine;
+            Object o = inv.invokeFunction(function, p);
+            return o;
+        } catch (IOException | NoSuchMethodException | ScriptException e) {
+            System.out.println(e);
+            return null;
+        }
+    }
+    // </editor-fold>
 }

@@ -77,7 +77,7 @@ public final class Req {
                 stringBuilder.append((char) buffer[i]);
             }
             this.request = stringBuilder.toString();
-            System.out.println(this.request.replace("\n", "@\n").replace("\r", "#"));
+            System.out.println(this.request);
         } catch (IOException e) {
             this.request = null;
         }
@@ -133,8 +133,9 @@ public final class Req {
             //body
             temp += "Body-Body-Body-Body-Body\n";
 
-            temp += this.cyCBody.getString("key");
-            temp += this.cyCBody.getString("key2");
+            System.out.println(this.cyCBody.getObject(1).getObject("key2").get("key3"));
+            temp += this.cyCBody.getObject(0).get("key");
+//            temp += this.cyCBody.get("key2");
         } else {
             temp = "No data";
         }

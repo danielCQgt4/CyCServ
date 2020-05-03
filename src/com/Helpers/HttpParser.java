@@ -88,8 +88,13 @@ public final class HttpParser {
             /* *** Decode request body *** */
             if (!this.method.equals("head")) {//Control head method
                 if (this.method.equals("get") || this.getBodyParams != null) {
-                    this.requestBody = this.getBodyParams;
-                    if (this.requestBody != null) {
+                    if (this.getBodyParams != null) {
+                        this.requestBody = this.getBodyParams;
+                        if (this.requestBody != null) {
+                            this.requestBodyBytes = this.requestBody.getBytes();
+                        }
+                    } else {
+                        this.requestBody = calcReq.replace("\n", "").replace("\r", "");
                         this.requestBodyBytes = this.requestBody.getBytes();
                     }
                 } else {
@@ -116,6 +121,8 @@ public final class HttpParser {
                         this.routeOriginal = getDecode[0];
                         if (getDecode.length == 2) {
                             this.getBodyParams = cleanBody(getDecode[1]);
+                        } else {
+                            this.getBodyParams = null;
                         }
                         this.route = cleanRoute(this.routeOriginal);
                         this.httpVersion = components[2].toLowerCase();

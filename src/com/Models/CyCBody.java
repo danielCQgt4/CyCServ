@@ -1,15 +1,14 @@
 package com.Models;
 
-import java.util.HashMap;
-
 public class CyCBody {
 
     // <editor-fold desc="Attributes">
-    private final HashMap<String, Object> params;
+    /* FORMURLENCODED */
+    private final CyCParams<Object, Object> params;
     // </editor-fold>
 
     // <editor-fold desc="Contructors">
-    public CyCBody(HashMap<String, Object> params) {
+    public CyCBody(CyCParams<Object, Object> params) {
         this.params = params;
     }
     // </editor-fold>
@@ -24,6 +23,15 @@ public class CyCBody {
             return o;
         } catch (Exception e) {
             return "";
+        }
+    }
+
+    public CyCParams<Object, Object> getObject(Object key) {
+        try {
+            CyCParams<Object, Object> o = this.params.getObject(key);
+            return o;
+        } catch (Exception e) {
+            return null;
         }
     }
 

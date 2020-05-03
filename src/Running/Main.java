@@ -8,23 +8,17 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.script.*;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
 public class Main {
 
     public static void main(String[] args) {
-        try {
-            jsRun();
-        } catch (IOException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ScriptException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchMethodException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        initServer();
     }
 
     public static void test(String text) {
@@ -67,7 +61,11 @@ public class Main {
 
         Invocable inv = (Invocable) engine;
 // call function from script file
-        Object o = inv.invokeFunction("temp");
-        System.out.println(o);
+        Object o = inv.invokeFunction("temp", 1);
+        if (o instanceof ScriptObjectMirror) {
+            System.out.println("json");
+        } else {
+            System.out.println(o);
+        }
     }
 }
