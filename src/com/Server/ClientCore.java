@@ -11,18 +11,16 @@ public class ClientCore implements Runnable {
 
     // <editor-fold desc="Attribbutes">
     private static final Logger LOGGER = Logger.getLogger("com.Server");
-    private final Core.CoreBalancer balancer;
-    private final CyCServ cyCServ;
-    private final Socket socket;
+    private CyCServ cyCServ;
+    private Socket socket;
     private Res respose;
     private Req request;
     // </editor-fold>
 
     // <editor-fold desc="Constructors">
-    public ClientCore(CyCServ cyCServ, Socket socket, Core.CoreBalancer balancer) {
+    public ClientCore(CyCServ cyCServ, Socket socket) {
         this.cyCServ = cyCServ;
         this.socket = socket;
-        this.balancer = balancer;
     }
     // </editor-fold>
 
@@ -31,13 +29,15 @@ public class ClientCore implements Runnable {
     public void run() {
         try {
             this.request = new Req(socket);
+            this.respose = new Res(request, socket);
+            respose.setStatus(404).sendText("Hola");
+            System.out.println("new client");
             //TODO Continue
         } catch (IOException e) {
             LOGGER.log(Level.INFO, "The process during the communication FAIL {0}", e);
         } finally {
             try {
                 this.socket.close();
-                this.balancer.close(socket);
             } catch (IOException ex) {
                 System.out.println(ex);
             }
@@ -45,6 +45,4 @@ public class ClientCore implements Runnable {
     }
     // </editor-fold>
 
-    // <editor-fold desc="Tools">
-    // </editor-fold>
 }

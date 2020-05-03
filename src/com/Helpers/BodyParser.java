@@ -16,11 +16,11 @@ import jdk.nashorn.api.scripting.ScriptObjectMirror;
 public final class BodyParser {
 
     // <editor-fold desc="Attributes">
-    private final String body;
-    private final byte[] bodyBytes;//To handle files
-    private final CyCParams<Object, Object> params;
-    private final String contentType;
-    private final CyCBody cyCBody;
+    private String body;
+    private byte[] bodyBytes;//To handle files
+    private CyCParams<Object, Object> params;
+    private String contentType;
+    private CyCBody cyCBody;
     // </editor-fold>
 
     // <editor-fold desc="Constructor">
@@ -78,9 +78,6 @@ public final class BodyParser {
         switch (this.contentType) {
             case "application/json":
                 json();
-                this.params.forEach((k, v) -> {
-                    System.out.println(k + ":" + v);
-                });
                 break;
             case "application/xml":
                 //NOT SUPPORTED

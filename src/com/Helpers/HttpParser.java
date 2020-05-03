@@ -6,7 +6,7 @@ public final class HttpParser {
 
     // <editor-fold desc="Attributes">
     /* **** General ***** */
-    private final String request;
+    private String request;
     private String requestLine;
     private String requestHeaders;
     private String requestBody;
@@ -18,7 +18,7 @@ public final class HttpParser {
     private String routeOriginal;
     private String httpVersion;
     /* **** Request headers **** */
-    private final HashMap<String, String> headers;
+    private HashMap<String, String> headers;
     /* **** Request body **** */
 //    private HashMap<String, Object> bodyParams;
     private String getBodyParams;

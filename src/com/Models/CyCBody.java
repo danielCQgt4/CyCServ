@@ -4,7 +4,7 @@ public class CyCBody {
 
     // <editor-fold desc="Attributes">
     /* FORMURLENCODED */
-    private final CyCParams<Object, Object> params;
+    private CyCParams<Object, Object> params;
     // </editor-fold>
 
     // <editor-fold desc="Contructors">

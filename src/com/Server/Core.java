@@ -12,9 +12,8 @@ public class Core implements Runnable {
 
     // <editor-fold desc="Attributes">
     private static final Logger LOGGER = Logger.getLogger("com.Server");
-    private final ServerSocket serverSocket;
-    private final CoreBalancer balancer;
-    private final CyCServ cyCServ;
+    private ServerSocket serverSocket;
+    private CyCServ cyCServ;
     private Socket socket;
 
     private final ExecutorService pool;
@@ -25,7 +24,6 @@ public class Core implements Runnable {
         this.cyCServ = cyCServ;
         this.serverSocket = serverSocket;
         this.pool = Executors.newFixedThreadPool(cyCServ.getMaxConnections());
-        this.balancer = new CoreBalancer(cyCServ.getMaxConnections());
     }
     // </editor-fold>
 
@@ -35,17 +33,7 @@ public class Core implements Runnable {
         while (true) {
             try {
                 this.socket = this.serverSocket.accept();
-//                if (this.balancer.isAccept()) {
-                pool.execute(new ClientCore(this.cyCServ, this.socket, this.balancer));
-//                    new Thread(new ClientCore(this.cyCServ, this.socket, this.balancer)).start();
-//                } else {
-//                    this.socket.getOutputStream().write("Max connections".getBytes());
-//                    try {
-//                        this.socket.close();
-//                    } catch (IOException ex) {
-//                    }
-//                    LOGGER.log(Level.INFO, "The server have the max connections ", this.cyCServ.getMaxConnections());
-//                }
+                pool.execute(new ClientCore(this.cyCServ, this.socket));
             } catch (IOException e) {
                 System.out.println();
                 LOGGER.log(Level.INFO, "The communication fail with a client\nCause: ", e.getMessage());
@@ -54,49 +42,4 @@ public class Core implements Runnable {
     }
 // </editor-fold>
 
-    // <editor-fold desc="Tools">
-    public class CoreBalancer {
-
-        private int upTimeConnections;
-        private final int maxConnections;
-
-        public CoreBalancer(int maxConnections) {
-            this.maxConnections = maxConnections;
-        }
-
-        public int getUpTimeConnections() {
-            return upTimeConnections;
-        }
-
-        private void decrease() {
-            this.upTimeConnections--;
-            if (this.upTimeConnections < 0) {
-                this.upTimeConnections = 0;
-            }
-        }
-
-        private boolean increase() {
-            if (this.upTimeConnections > maxConnections) {
-                this.upTimeConnections = maxConnections;
-                return false;
-            } else {
-                this.upTimeConnections++;
-                return true;
-            }
-        }
-
-        public boolean isAccept() {
-            return this.increase();
-        }
-
-        public boolean close(Socket so) {
-            if (so.isClosed()) {
-                this.decrease();
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
-    // </editor-fold>
 }

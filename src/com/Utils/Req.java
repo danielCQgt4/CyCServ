@@ -13,29 +13,26 @@ import java.util.HashMap;
 public final class Req {
 
     // <editor-fold desc="Attributtes">
-    private final InputStream inputStream;
+    private InputStream inputStream;
     private String request;
     /* *** Decode request line *** */
     private String method;
     private String route;
     private String httpVerion;
     /* *** Decode request headers *** */
-    private final HashMap<String, String> headers;
+    private HashMap<String, String> headers;
     /* *** Decode request body *** */
     private String body;
     private byte[] bodyBytes;
     private CyCBody cyCBody;
     //TODO ver como manejar
 
-    //TEMP
-    private final OutputStream out;
     // </editor-fold>
 
     // <editor-fold desc="Constructors">
     public Req(Socket socket) throws IOException {
         this.headers = new HashMap<>();
         this.inputStream = socket.getInputStream();
-        this.out = socket.getOutputStream();
         this.decodeRequest();
     }
     // </editor-fold>
@@ -69,16 +66,20 @@ public final class Req {
     // <editor-fold desc="Actions">
     private String getRequestToString() throws IOException {
         try {
-            byte buffer[] = new byte[this.inputStream.available()];
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            baos.write(buffer, 0, this.inputStream.read(buffer));
-            StringBuilder stringBuilder = new StringBuilder();
-            for (int i = 0; i < buffer.length; i++) {
-                stringBuilder.append((char) buffer[i]);
+            this.request = "";
+            int max = 3, tries = 0;
+            while (this.request.isEmpty() && tries++ < max) {
+                byte buffer[] = new byte[this.inputStream.available()];
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                baos.write(buffer, 0, this.inputStream.read(buffer));
+                StringBuilder stringBuilder = new StringBuilder();
+                for (int i = 0; i < buffer.length; i++) {
+                    stringBuilder.append((char) buffer[i]);
+                }
+                this.request = stringBuilder.toString();
             }
-            this.request = stringBuilder.toString();
-            System.out.println(this.request);
         } catch (IOException e) {
+            System.out.println(e);
             this.request = null;
         }
         return request;
@@ -105,46 +106,7 @@ public final class Req {
             );
         }
 
-        // <editor-fold desc="TEMP">
-        String temp;
-        if (parser.isValidRequest() && this.cyCBody != null) {
-            //full
-            temp = "Full-Full-Full-Full-Full \n" + this.request + "\n\n\n";
-
-            temp += "-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
-            //line
-            temp += "Line-Line-Line-Line-Line\n\n";
-            temp += "   Method: " + this.method + "\n";
-            temp += "   Route: " + this.route + "\n";
-            temp += "   Version: " + this.httpVerion + "\n\n\n";
-
-            temp += "-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
-            //headers
-            temp += "Headers-Headers-Headers-Headers-Headers\n\n\n";
-
-            final StringBuilder heads = new StringBuilder();
-
-            this.headers.forEach((k, v) -> {
-                heads.append("  ").append(k).append(" -:- ").append(v).append("\n");
-            });
-            temp += heads.toString() + "\n\n\n";
-
-            temp += "-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n";
-            //body
-            temp += "Body-Body-Body-Body-Body\n";
-
-//            System.out.println(this.cyCBody.getObject(1).getObject("key2").get("key3"));
-//            temp += this.cyCBody.getObject(0).get("key");
-            temp += this.cyCBody.get("key");
-        } else {
-            temp = "No data";
-        }
-        // </editor-fold>
-
-        out.write(temp.getBytes());
-        //System.out.println(this.completeRequest);
-        this.inputStream.close();
-        this.out.close();
     }
+
     // </editor-fold>
 }

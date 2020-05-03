@@ -8,6 +8,10 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 import javax.script.*;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
@@ -16,6 +20,8 @@ public class Main {
 
     public static void main(String[] args) {
         initServer();
+        
+//        System.out.println();
     }
 
     public static void test(String text) {
@@ -27,7 +33,8 @@ public class Main {
         try {
             CyCServ cyCServ = new CyCServ();
 //            cyCServ.setRouter(new Router());
-            CyCServ.CyCServResult r = cyCServ.listen(3000);
+            CyCServ.CyCServResult r = cyCServ.listen(8080);
+            cyCServ.setMaxConnections(100);
             if (!r.isStarted()) {
                 System.out.println(r.getError());
             } else {
