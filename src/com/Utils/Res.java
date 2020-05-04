@@ -75,7 +75,7 @@ public class Res {
         this.request = request;
         this.out = socket.getOutputStream();
         this.CRLF = "\r\n";
-        this.HTTP_VERSION = "HTTP/1.1";
+        this.HTTP_VERSION = "HTTP/1.0";
         this.headers = new HashMap<>();
         this.cyCServ = cyCServ;
         this.init();
@@ -167,9 +167,6 @@ public class Res {
         try {
             byte[] top = composeResponse();
             this.headers.put("Content-Length", data.length);
-            this.headers.put("Content-Encoding", "gzip");
-            this.headers.put("A", "1234");
-            this.headers.put("Cache-Control", "no-store");
             byte[] allResponse = new byte[top.length + data.length];
             ByteBuffer process = ByteBuffer.wrap(allResponse);
             process.put(top);
@@ -219,6 +216,14 @@ public class Res {
             }
 
             Logger.getLogger(Res.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void temp(String text) {
+        try {
+            out.write(text.getBytes());
+        } catch (Exception e) {
+
         }
     }
     // </editor-fold>

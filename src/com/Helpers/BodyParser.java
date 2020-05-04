@@ -13,7 +13,7 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
-public final class BodyParser {
+public class BodyParser {
 
     // <editor-fold desc="Attributes">
     private String body;

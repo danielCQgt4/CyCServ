@@ -40,6 +40,7 @@ public final class CyCServ {
     private void setDefaultErrors() {
         this.errors.put(400, "src\\com\\StaticContent\\400.html");
         this.errors.put(404, "src\\com\\StaticContent\\404.html");
+        this.errors.put(500, "src\\com\\StaticContent\\500.html");
     }
     // </editor-fold>
 

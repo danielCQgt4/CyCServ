@@ -10,7 +10,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.HashMap;
 
-public final class Req {
+public class Req {
 
     // <editor-fold desc="Attributtes">
     private String cache;
@@ -79,8 +79,10 @@ public final class Req {
             StringBuilder stringBuilder = new StringBuilder();
             for (int i = 0; i < buffer.length; i++) {
                 stringBuilder.append((char) buffer[i]);
+                System.out.print((char) buffer[i]);
             }
             this.request = stringBuilder.toString();
+
         } catch (IOException e) {
             System.out.println(e);
             this.request = null;
@@ -90,18 +92,15 @@ public final class Req {
 
     private void decodeRequest() throws IOException {
         String data = getRequestToString();
+        this.validRequest = true;
         if (data.isEmpty()) {
-            System.out.println("Using cache");
-            data = this.cache;
-            this.validRequest = true;
-        } else {
-            this.validRequest = false;
-        }
-        if (data == null) {
-            data = "";
+            data = cache;
+            if (data.isEmpty()) {
+                this.validRequest = false;
+            }
         }
         HttpParser parser = new HttpParser(data);
-        if (parser.isValidRequest()) {
+        if (parser.isValidRequest() && this.validRequest) {
             this.validRequest = true;
             //Line
             this.method = parser.getMethod();

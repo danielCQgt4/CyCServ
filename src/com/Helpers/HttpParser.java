@@ -2,7 +2,7 @@ package com.Helpers;
 
 import java.util.HashMap;
 
-public final class HttpParser {
+public class HttpParser {
 
     // <editor-fold desc="Attributes">
     /* **** General ***** */
